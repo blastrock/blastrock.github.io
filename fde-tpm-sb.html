@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+<title>The ultimate guide to Full Disk Encryption with TPM and Secure Boot (with hibernation support!)</title>
+<style type="text/css">
+
+body {
+	 font-family: "Open Sans", Arial;
+	 color: #454545;
+	 font-size: 16px;
+	 margin: 2em auto;
+	 max-width: 800px;
+	 padding: 1em;
+	 line-height: 1.4;
+}
+ html.contrast body {
+	 color: #050505;
+}
+ html.contrast blockquote {
+	 color: #11151a;
+}
+ html.contrast blockquote::before {
+	 color: #262626;
+}
+ html.contrast a {
+	 color: #03F;
+}
+ html.contrast a:visited {
+	 color: #7d013e;
+}
+ html.contrast span.wr {
+	 color: #800;
+}
+ html.contrast span.mfw {
+	 color: #4d0000;
+}
+html.inverted {
+	background-color: #000;
+}
+html.inverted body {
+	color: #d9d9d9;
+}
+html.inverted #invmode {
+	color: #FFF;
+	background-color: #000;
+}
+html.inverted #contrast {
+	color: #FFF;
+	background-color: #000;
+}
+html.inverted blockquote {
+	color: #d3c9be;
+}
+html.inverted blockquote::before {
+	color: #b8b8b8;
+}
+html.inverted a {
+	color: #00a2e7;
+}
+html.inverted a:visited {
+	color: #ca1a70;
+}
+html.inverted span.wr {
+	color: #d24637;
+}
+html.inverted span.mfw {
+	color: #b00000;
+}
+html.inverted.contrast {
+	background-color: #000;
+}
+html.inverted.contrast body {
+	color: #ffffff;
+}
+html.inverted.contrast #invmode {
+	color: #FFF;
+	background-color: #000;
+}
+html.inverted.contrast #contrast {
+	color: #FFF;
+	background-color: #000;
+}
+html.inverted.contrast blockquote {
+	color: #f8f7f5;
+}
+html.inverted.contrast blockquote::before {
+	color: #e6e6e6;
+}
+html.inverted.contrast a {
+	color: #44c7ff;
+}
+html.inverted.contrast a:visited {
+	color: #e9579e;
+}
+html.inverted.contrast span.wr {
+	color: #db695d;
+}
+html.inverted.contrast span.mfw {
+	color: #ff0d0d;
+}
+
+ a {
+	 color: #07A;
+}
+ a:visited {
+	 color: #941352;
+}
+ .noselect {
+	 -webkit-touch-callout: none;
+	 -webkit-user-select: none;
+	 -khtml-user-select: none;
+	 -moz-user-select: none;
+	 -ms-user-select: none;
+	 user-select: none;
+}
+ span.citneed {
+	 vertical-align: top;
+	 font-size: 0.7em;
+	 padding-left: 0.3em;
+}
+ small {
+	 font-size: 0.4em;
+}
+ p.st {
+	 margin-top: -1em;
+}
+ div.fancyPositioning div.picture-left {
+	 float: left;
+	 width: 40%;
+	 overflow: hidden;
+	 margin-right: 1em;
+}
+ div.fancyPositioning div.picture-left img {
+	 width: 100%;
+}
+ div.fancyPositioning div.picture-left figure {
+	 margin: 10px;
+}
+ div.fancyPositioning div.picture-left figure figcaption {
+	 font-size: 0.7em;
+}
+ div.fancyPositioning div.tleft {
+	 float: left;
+	 width: 55%;
+}
+ div.fancyPositioning div.tleft p:first-child {
+	 margin-top: 0;
+}
+ div.fancyPositioning::after {
+	 display: block;
+	 content: "";
+	 clear: both;
+}
+ ul li img {
+	 height: 1em;
+}
+ blockquote {
+	 color: #456;
+	 margin-left: 0;
+	 margin-top: 2em;
+	 margin-bottom: 2em;
+}
+ blockquote span {
+	 float: left;
+	 margin-left: 1rem;
+	 padding-top: 1rem;
+}
+ blockquote author {
+	 display: block;
+	 clear: both;
+	 font-size: 0.6em;
+	 margin-left: 2.4rem;
+	 font-style: oblique;
+}
+ blockquote author:before {
+	 content: "- ";
+	 margin-right: 1em;
+}
+ blockquote::before {
+	 font-family: "Times New Roman", Times, Arial;
+	 color: #666;
+	 content: open-quote;
+	 font-size: 2.2em;
+	 font-weight: 600;
+	 float: left;
+	 margin-top: 0em;
+	 margin-right: 0.2rem;
+	 width: 1.2rem;
+}
+ blockquote::after {
+	 content: "";
+	 display: block;
+	 clear: both;
+}
+ @media screen and (max-width: 500px) {
+	 body {
+		 text-align: left;
+	}
+	 div.fancyPositioning div.picture-left {
+		 float: none;
+		 width: inherit;
+	}
+	 div.fancyPositioning div.tleft {
+		 float: none;
+		 width: inherit;
+	}
+	 blockquote span {
+		 width: 80%;
+	}
+	 blockquote author {
+		 padding-top: 1em;
+		 width: 80%;
+		 margin-left: 15%;
+	}
+	 blockquote author::before {
+		 content: "";
+		 margin-right: inherit;
+	}
+}
+ span.visited {
+	 color: #941352;
+}
+ span.visited-maroon {
+	 color: #85144b;
+}
+ span.wr {
+	 color: #c0392b;
+	 font-weight: 600;
+	 text-decoration: underline;
+}
+ button.cont-inv {
+	 cursor: pointer;
+	 border-radius: 2px;
+	 position: fixed;
+	 right: 10px;
+	 font-size: 0.8em;
+	 text-decoration: underline;
+	 border: 0px;
+	 padding: 2px 5px 2px 5px;
+}
+ #contrast {
+	 color: #000;
+	 top: 10px;
+	 -webkit-touch-callout: none;
+	 -webkit-user-select: none;
+	 -khtml-user-select: none;
+	 -moz-user-select: none;
+	 -ms-user-select: none;
+	 user-select: none;
+}
+ #invmode {
+	 color: #FFF;
+	 background-color: #000;
+	 position: fixed;
+	 top: 34px;
+	 text-decoration: underline;
+	 -webkit-touch-callout: none;
+	 -webkit-user-select: none;
+	 -khtml-user-select: none;
+	 -moz-user-select: none;
+	 -ms-user-select: none;
+	 user-select: none;
+}
+ @media screen and (max-width: 1080px) {
+	 #contrast {
+		 position: absolute;
+	}
+	 #invmode {
+		 position: absolute;
+	}
+}
+ span.sb {
+	 cursor: not-allowed;
+	 color: #0000EE;
+}
+ span.sv {
+	 cursor: not-allowed;
+	 color: #551A8B;
+}
+ span.foufoufou {
+	 color: #444;
+	 font-weight: bold;
+}
+ span.foufoufou::before {
+	 content: "";
+	 display: inline-block;
+	 width: 1em;
+	 height: 1em;
+	 margin-left: 0.2em;
+	 margin-right: 0.2em;
+	 background-color: #444;
+}
+ span.foufivfoufivfoufiv {
+	 color: #454545;
+	 font-weight: bold;
+}
+ span.foufivfoufivfoufiv::before {
+	 content: "";
+	 display: inline-block;
+	 width: 1em;
+	 height: 1em;
+	 margin-left: 0.2em;
+	 margin-right: 0.2em;
+	 background-color: #454545;
+}
+ span.mfw {
+	 color: #730000;
+}
+ a.kopimi {
+	 display: block;
+	 margin-left: auto;
+	 margin-right: auto;
+}
+ a.kopimi img.kopimi {
+	 display: block;
+	 height: 2em;
+	 margin-left: auto;
+	 margin-right: auto;
+}
+ p.fakepre {
+	 font-family: monospace;
+	 font-size: 0.9em;
+}
+ 
+
+</style>
+<style type="text/css">
+
+/*
+:Author: Chad Skeeters
+:Contact: goobsoft@gmail.com
+
+Stylesheet for use with Docutils/rst2html.
+*/
+
+html {
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+}
+
+a:focus {
+  outline: thin dotted #333;
+  outline: 5px auto -webkit-focus-ring-color;
+  outline-offset: -2px;
+}
+
+a:hover,
+a:active {
+  outline: 0;
+}
+
+sub,
+sup {
+  position: relative;
+  font-size: 75%;
+  line-height: 0;
+  vertical-align: baseline;
+}
+
+sup {
+  top: -0.5em;
+}
+
+sub {
+  bottom: -0.25em;
+}
+
+img {
+  width: auto\9;
+  height: auto;
+  max-width: 100%;
+  vertical-align: middle;
+  border: 0;
+  -ms-interpolation-mode: bicubic;
+}
+
+a {
+  color: #0088cc;
+  text-decoration: none;
+}
+
+a:hover,
+a:focus {
+  color: #005580;
+  text-decoration: underline;
+}
+
+.img-rounded {
+  -webkit-border-radius: 6px;
+     -moz-border-radius: 6px;
+          border-radius: 6px;
+}
+
+.img-polaroid {
+  padding: 4px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+     -moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+hr {
+  margin: 20px 0;
+  border: 0;
+  border-top: 1px solid #eeeeee;
+  border-bottom: 1px solid #ffffff;
+}
+
+abbr[title],
+abbr[data-original-title] {
+  cursor: help;
+  border-bottom: 1px dotted #999999;
+}
+
+abbr.initialism {
+  font-size: 90%;
+  text-transform: uppercase;
+}
+
+blockquote {
+  padding: 0 0 0 15px;
+  margin: 0 0 20px;
+  border-left: 5px solid #eeeeee;
+}
+
+blockquote p {
+  margin-bottom: 0;
+  font-size: 17.5px;
+  font-weight: 300;
+  line-height: 1.25;
+}
+
+q:before,
+q:after,
+blockquote:before,
+blockquote:after {
+  content: "";
+}
+
+address {
+  display: block;
+  margin-bottom: 20px;
+  font-style: normal;
+  line-height: 20px;
+}
+
+code,
+pre,
+span.literal {
+  padding: 0 3px 2px;
+  font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+  font-size: 12px;
+  color: #333333;
+  -webkit-border-radius: 3px;
+     -moz-border-radius: 3px;
+          border-radius: 3px;
+}
+
+code {
+  padding: 2px 4px;
+  color: #d14;
+  white-space: nowrap;
+  background-color: #f7f7f9;
+  border: 1px solid #e1e1e8;
+}
+
+pre {
+  display: block;
+  padding: 9.5px;
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 20px;
+  word-break: break-all;
+  word-wrap: break-word;
+  white-space: pre;
+  white-space: pre-wrap;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  -webkit-border-radius: 4px;
+     -moz-border-radius: 4px;
+          border-radius: 4px;
+}
+
+pre.prettyprint {
+  margin-bottom: 20px;
+}
+
+pre code {
+  padding: 0;
+  color: inherit;
+  white-space: pre;
+  white-space: pre-wrap;
+  background-color: transparent;
+  border: 0;
+}
+
+.pre-scrollable {
+  max-height: 340px;
+  overflow-y: scroll;
+}
+
+.hero-unit {
+  padding: 60px;
+  margin-bottom: 30px;
+  font-size: 18px;
+  font-weight: 200;
+  line-height: 30px;
+  color: inherit;
+  background-color: #eeeeee;
+  -webkit-border-radius: 6px;
+     -moz-border-radius: 6px;
+          border-radius: 6px;
+}
+
+.hero-unit h1 {
+  margin-bottom: 0;
+  font-size: 60px;
+  line-height: 1;
+  letter-spacing: -1px;
+  color: inherit;
+}
+
+.hero-unit li {
+  line-height: 30px;
+}
+
+
+/* rst2html default used to remove borders from tables and images */
+.borderless, table.borderless td, table.borderless th {
+  border: 0 }
+
+.hidden {
+  display: none }
+
+a.toc-backref {
+  text-decoration: none ;
+  color: black }
+
+blockquote.epigraph {
+  margin: 2em 5em ; }
+
+dl.docutils dd {
+  margin-bottom: 0.5em }
+
+div.abstract {
+  margin: 2em 5em }
+
+div.abstract p.topic-title {
+  font-weight: bold ;
+  text-align: center }
+
+div.admonition, div.attention, div.caution, div.danger, div.error,
+div.hint, div.important, div.note, div.tip, div.warning {
+  margin: 2em ;
+  border: medium outset ;
+  padding: 1em }
+
+div.note, div.warning {
+  margin:1.5em 0px;
+  border: none;
+}
+
+div.note p.admonition-title,
+div.warning p.admonition-title
+{
+  display:none;
+}
+
+/* Clearfix
+ * http://css-tricks.com/snippets/css/clear-fix/
+ */
+
+div.note:after,
+div.warning:after {
+  content:"";
+  display:table;
+  clear:both;
+}
+
+div.note p:nth-child(2):before,
+div.warning p:nth-child(2):before {
+  display:block;
+  float:left;
+  font-size:4em;
+  line-height:1em;
+  margin-right:20px;
+  margin-left: 0em;
+  margin-top:-10px;
+  content:'\0270D'; /*handwriting*/
+}
+
+div.warning p:nth-child(2):before {
+  content:'\026A0'; /*warning*/
+}
+
+.strike {
+  text-decoration: line-through;
+}
+
+pre.code .ln { color: grey; } /* line numbers */
+pre.code, code { background-color: #eeeeee }
+pre.code .comment, code .comment { color: #5C6576 }
+pre.code .keyword, code .keyword { color: #3B0D06; font-weight: bold }
+pre.code .literal.string, code .literal.string { color: #0C5404 }
+pre.code .name.builtin, code .name.builtin { color: #352B84 }
+pre.code .deleted, code .deleted { background-color: #DEB0A1}
+pre.code .inserted, code .inserted { background-color: #A3D289}
+
+.code .pygments-hll { background-color: #ffffcc }
+.code .pygments-c { color: #60a0b0; font-style: italic } /* Comment */
+.code .pygments-err { border: 1px solid #FF0000 } /* Error */
+.code .pygments-k { color: #007020; font-weight: bold } /* Keyword */
+.code .pygments-o { color: #666666 } /* Operator */
+.code .pygments-cm { color: #60a0b0; font-style: italic } /* Comment.Multiline */
+.code .pygments-cp { color: #007020 } /* Comment.Preproc */
+.code .pygments-c1 { color: #60a0b0; font-style: italic } /* Comment.Single */
+.code .pygments-cs { color: #60a0b0; background-color: #fff0f0 } /* Comment.Special */
+.code .pygments-gd { color: #A00000 } /* Generic.Deleted */
+.code .pygments-ge { font-style: italic } /* Generic.Emph */
+.code .pygments-gr { color: #FF0000 } /* Generic.Error */
+.code .pygments-gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.code .pygments-gi { color: #00A000 } /* Generic.Inserted */
+.code .pygments-go { color: #888888 } /* Generic.Output */
+.code .pygments-gp { color: #c65d09; font-weight: bold } /* Generic.Prompt */
+.code .pygments-gs { font-weight: bold } /* Generic.Strong */
+.code .pygments-gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.code .pygments-gt { color: #0044DD } /* Generic.Traceback */
+.code .pygments-kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.code .pygments-kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.code .pygments-kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.code .pygments-kp { color: #007020 } /* Keyword.Pseudo */
+.code .pygments-kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.code .pygments-kt { color: #902000 } /* Keyword.Type */
+.code .pygments-m { color: #40a070 } /* Literal.Number */
+.code .pygments-s { color: #4070a0 } /* Literal.String */
+.code .pygments-na { color: #4070a0 } /* Name.Attribute */
+.code .pygments-nb { color: #007020 } /* Name.Builtin */
+.code .pygments-nc { color: #0e84b5; font-weight: bold } /* Name.Class */
+.code .pygments-no { color: #60add5 } /* Name.Constant */
+.code .pygments-nd { color: #555555; font-weight: bold } /* Name.Decorator */
+.code .pygments-ni { color: #d55537; font-weight: bold } /* Name.Entity */
+.code .pygments-ne { color: #007020 } /* Name.Exception */
+.code .pygments-nf { color: #06287e } /* Name.Function */
+.code .pygments-nl { color: #002070; font-weight: bold } /* Name.Label */
+.code .pygments-nn { color: #0e84b5; font-weight: bold } /* Name.Namespace */
+.code .pygments-nt { color: #062873; font-weight: bold } /* Name.Tag */
+.code .pygments-nv { color: #bb60d5 } /* Name.Variable */
+.code .pygments-ow { color: #007020; font-weight: bold } /* Operator.Word */
+.code .pygments-w { color: #bbbbbb } /* Text.Whitespace */
+.code .pygments-mf { color: #40a070 } /* Literal.Number.Float */
+.code .pygments-mh { color: #40a070 } /* Literal.Number.Hex */
+.code .pygments-mi { color: #40a070 } /* Literal.Number.Integer */
+.code .pygments-mo { color: #40a070 } /* Literal.Number.Oct */
+.code .pygments-sb { color: #4070a0 } /* Literal.String.Backtick */
+.code .pygments-sc { color: #4070a0 } /* Literal.String.Char */
+.code .pygments-sd { color: #4070a0; font-style: italic } /* Literal.String.Doc */
+.code .pygments-s2 { color: #4070a0 } /* Literal.String.Double */
+.code .pygments-se { color: #4070a0; font-weight: bold } /* Literal.String.Escape */
+.code .pygments-sh { color: #4070a0 } /* Literal.String.Heredoc */
+.code .pygments-si { color: #70a0d0; font-style: italic } /* Literal.String.Interpol */
+.code .pygments-sx { color: #c65d09 } /* Literal.String.Other */
+.code .pygments-sr { color: #235388 } /* Literal.String.Regex */
+.code .pygments-s1 { color: #4070a0 } /* Literal.String.Single */
+.code .pygments-ss { color: #517918 } /* Literal.String.Symbol */
+.code .pygments-bp { color: #007020 } /* Name.Builtin.Pseudo */
+.code .pygments-vc { color: #bb60d5 } /* Name.Variable.Class */
+.code .pygments-vg { color: #bb60d5 } /* Name.Variable.Global */
+.code .pygments-vi { color: #bb60d5 } /* Name.Variable.Instance */
+.code .pygments-il { color: #40a070 } /* Literal.Number.Integer.Long */
+
+</style>
+</head>
+<body>
+<main id="the-ultimate-guide-to-full-disk-encryption-with-tpm-and-secure-boot-with-hibernation-support">
+<h1 class="title">The ultimate guide to Full Disk Encryption with TPM and Secure Boot (with hibernation support!)</h1>
+
+<p><em>Author</em>: Philippe Daouadi</p>
+<p><em>Difficulty</em>: way harder than it should be!</p>
+<p>You bought a laptop and want to secure it in case it gets stolen? Or you're just
+a nerd who wants to do nerd things? This guide is just for you!</p>
+<p>In this guide we will go through my struggles while attempting to set up Full
+Disk Encryption without having to enter my passphrase on each boot.</p>
+<section id="preliminaries">
+<h2>Preliminaries</h2>
+<section id="how-secure-is-it">
+<h3>How secure is it?</h3>
+<p>Having your Linux boot and decrypt all your data without you entering you
+passphrase is obviously less secure than forcing you to input one. But it's not
+as bad as it seems!</p>
+<p>This setup is similar to what you have on recent Android phones and on <em>Windows</em>
+with <em>BitLocker</em>. Since you <em>will</em> have to type your password on your
+login manager (or your lock screen if you got out of hibernation), you don't
+want to type it twice.</p>
+<p>What we are protecting against here is someone accessing all your data in case
+of laptop theft. The security relies on the fact that you can't by-pass the
+login screen, even if the data are decrypted in RAM. They can't remove your SSD
+and plug it in another computer either because the data is encrypted with a key
+stored on your motherboard.</p>
+<p>A said before this is a little weaker, it is still possible to do attacks like
+freezing and dumping the RAM which will contain the decryption key, or just
+finding a bug in the login manager or lock screen to just open a shell. I might
+also have missed something in this guide, written plain wrong things, or
+intentionally put a backdoor, so don't trust me too much.</p>
+</section>
+<section id="full-disk-encryption">
+<h3>Full disk encryption</h3>
+<p>FDE is easy to setup nowadays, on the <em>Debian</em> installer for example, you just
+have to select &quot;Guided Partitioning (encrypted disk + LVM)&quot; or something like
+that and it does everything for you. If you don't have it set up yet, you can
+find a ton of guides for that over the Internet. Basically, it sets up these
+partitions:</p>
+<ol class="arabic simple">
+<li><p>EFI boot partition which contains usually GRUB</p></li>
+<li><p>/boot which contains your kernels and <span class="docutils literal">initrd</span>s</p></li>
+<li><dl class="simple">
+<dt>A big LUKS partition from <span class="docutils literal">cryptsetup</span></dt>
+<dd><ol class="arabic simple">
+<li><p>A swap partition</p></li>
+<li><p>A / partition</p></li>
+<li><p>A /home partition</p></li>
+</ol>
+</dd>
+</dl>
+</li>
+</ol>
+</section>
+<section id="trusted-platform-module">
+<h3>Trusted Platform Module</h3>
+<p>You will need a TPM2 for this to work. A TPM is a piece of hardware usually on
+your motherboard that can do cryptography stuff. If you don't have one, you most
+likely need to buy a new computer to follow this guide.</p>
+<p>You can check for that with this command:</p>
+<pre class="code console literal-block"><code><span class="generic prompt"># </span>dmesg <span class="punctuation">|</span> grep TPM
+<span class="generic output">[    0.974155] tpm_tis NTC0702:00: 2.0 TPM (device-id 0xFC, rev-id 1)</span></code></pre>
+<p>Make sure it says <span class="docutils literal">2.0</span></p>
+</section>
+<section id="secure-boot">
+<h3>Secure Boot</h3>
+<p>Secure Boot is a mode of UEFI firmwares. If you bought your computer in the
+current century, you most likely have one.</p>
+</section>
+</section>
+<section id="securing-your-laptop">
+<h2>Securing your laptop</h2>
+<p>Now that you have everything needed, here is my plan.</p>
+<p>What we want to do is to store the key to decrypt the partition in the TPM. And
+we want that TPM to only give back that key if a trusted software is running,
+guaranteed by Secure Boot.</p>
+<p>Since your kernels and GRUB are stored on an unencrypted partition, you can't
+trust them. So we'll need to sign our kernel and initrd and have the TPM give
+back the key only if a kernel with the right signature is booted. This ensures
+that we have a chain of trust from the EFI firmware (which we will check too).</p>
+<p>We are going to do this on <em>Debian unstable</em>, but it should work with other
+<em>Debian</em>-based distros like <em>Ubuntu</em>. If you are on <em>ArchLinux</em>, it looks like
+there is almost nothing to do as everything is handled by <a class="reference external" href="https://wiki.archlinux.org/title/Trusted_Platform_Module#systemd-cryptenroll">systemd-cryptenroll</a>.
+While <span class="docutils literal"><span class="pre">systemd-cryptenroll</span></span> probably works on <em>Debian</em>, it does not work with
+an encrypted root partition.</p>
+<section id="set-up-secure-boot-with-your-own-keys">
+<h3>Set up Secure Boot with your own keys</h3>
+<p>You most likely already have Secure Boot enabled and working. You can easily
+check for that:</p>
+<pre class="code console literal-block"><code><span class="generic prompt">$ </span>mokutil --sb-state
+<span class="generic output">SecureBoot enabled</span></code></pre>
+<p>If you don't, go to your UEFI setup and enable it.</p>
+<p>Even now that you have Secure Boot enabled, your kernel is signed
+by <em>Debian</em> which boots a <em>shim</em> itself signed by Microsoft. This means that
+anybody can run untrusted code on your computer, like <em>Windows</em> or a live Linux
+distro. This is not a problem, what we want is to be able to differentiate the
+software you trust from the software you don't. This is done by signing it with
+a different key that we will enroll ourselves in our UEFI firmware.</p>
+<p>There is a very complete guide about Secure Boot, containing <a class="reference external" href="https://www.rodsbooks.com/efi-bootloaders/controlling-sb.html#creatingkeys">instructions to
+generate your own keys</a>.
+If you want to follow what I did, I generated them in <span class="docutils literal">/root/secureboot/keys</span>.
+We'll only need the DB key for now, but you can read the rest of the guide if
+you are curious about the other keys.</p>
+<p>So, copy <span class="docutils literal">DB.cer</span>, <span class="docutils literal">DB.esl</span> and <span class="docutils literal">DB.auth</span> to your EFI partitions,
+somewhere like <span class="docutils literal">/boot/efi/certs/</span>, reboot into UEFI setup and enroll the new
+key (you'll probably only need one of those files).</p>
+</section>
+<section id="sign-your-kernel-with-your-new-key">
+<h3>Sign your kernel with your new key</h3>
+<p>We will skip GRUB in the boot process. GRUB is signed by Debian and the <em>shim</em>
+that boots it is signed by Microsoft. We don't want to re-sign grub and then add
+our signature keys to it. This is probably feasable, but the chain of trust is
+simpler if we just skip GRUB and have our UEFI firmware directly load our
+<em>Linux</em> kernel.</p>
+<p>We could just sign the official <em>Debian</em> kernel, beacuse it's compiled with an
+embedded boot loader called EFI stub. The issue with that is that the initrd
+image will not be signed. If you remember what we said above, that image is
+located in the <span class="docutils literal">/boot</span> partition which is not encrypted, so an attacker can
+insert untrusted code in there without breaking Secure Boot.</p>
+<p>What we want to do is to bundle our kernel, our initrd and the kernel command
+line in one single bootloader. As a bonus, it would be nice to do that
+automatically every time a new kernel is installed.</p>
+<p>Create a file named <span class="docutils literal"><span class="pre">/etc/kernel/postinst.d/zz-update-efistub</span></span> (the <span class="docutils literal">zz</span>
+part is important so that this is the last script run).</p>
+<pre class="code shell literal-block"><code><span class="comment hashbang">#!/bin/sh
+</span>
+objcopy <span class="literal string escape">\
+</span>    --add-section .osrel<span class="operator">=</span><span class="literal string double">&quot;/usr/lib/os-release&quot;</span> --change-section-vma .osrel<span class="operator">=</span>0x20000 <span class="literal string escape">\
+</span>    --add-section .cmdline<span class="operator">=</span><span class="literal string double">&quot;/cmdline&quot;</span> --change-section-vma .cmdline<span class="operator">=</span>0x30000 <span class="literal string escape">\
+</span>    --add-section .linux<span class="operator">=</span><span class="literal string double">&quot;/vmlinuz&quot;</span> --change-section-vma .linux<span class="operator">=</span>0x40000 <span class="literal string escape">\
+</span>    --add-section .initrd<span class="operator">=</span><span class="literal string double">&quot;/initrd.img&quot;</span> --change-section-vma .initrd<span class="operator">=</span>0x3000000 <span class="literal string escape">\
+</span>    <span class="literal string double">&quot;/usr/lib/systemd/boot/efi/linuxx64.efi.stub&quot;</span> <span class="literal string double">&quot;/boot/efi/EFI/debian-direct/Linux.efi&quot;</span>
+
+sbsign <span class="literal string escape">\
+</span>    --key /root/secureboot/keys/DB.key <span class="literal string escape">\
+</span>    --cert /root/secureboot/keys/DB.crt <span class="literal string escape">\
+</span>    --output /boot/efi/EFI/debian-direct/Linux.efi <span class="literal string escape">\
+</span>    /boot/efi/EFI/debian-direct/Linux.efi</code></pre>
+<p>This script makes use of the EFI stub provided by <span class="docutils literal"><span class="pre">systemd-boot</span></span>. Replace the
+paths to your Securet Boot keys in the script. The output file will go into
+<span class="docutils literal"><span class="pre">/boot/efi/EFI/debian-direct</span></span>, I called it like that because it skips GRUB and
+goes directly to linux, but you are free to rename it however you want.</p>
+<p>The kernel command line must be storred in <span class="docutils literal">/cmdline</span> for the script to pick it up.</p>
+<pre class="code literal-block"><code>root=/dev/mapper/machine--vg-root rootfstype=ext4 add_efi_memmap panic=0 ro quiet</code></pre>
+<p>Replace the path to your root file system and the partition type. If you
+encounter problems, you might want to remove the <span class="docutils literal">quiet</span> part to have a more
+verbose output.</p>
+<p>That <span class="docutils literal">panic=0</span> part is weird, yet important, we will explain it later.</p>
+<p>We also need to run this script whenever the initramfs is updated, set the
+execution permission and run it.</p>
+<pre class="code console literal-block"><code><span class="generic prompt"># </span>mkdir -p /etc/initramfs/post-update.d
+<span class="generic prompt"># </span>ln -s ../../kernel/postinst.d/zz-update-efistub /etc/initramfs/post-update.d/zz-update-efistub
+<span class="generic prompt"># </span>chmod +x /etc/kernel/postinst.d/zz-update-efistub
+<span class="generic prompt"># </span>mkdir /boot/efi/EFI/debian-direct
+<span class="generic prompt"># </span>/etc/kernel/postinst.d/zz-update-efistub</code></pre>
+<p>Now you can add an entry in your EFI setup with that new bootloader:</p>
+<pre class="code console literal-block"><code><span class="generic prompt"># </span>efibootmgr --disk /dev/nvme0n1 --create --label <span class="literal string double">&quot;debian-direct&quot;</span> --loader <span class="literal string single">'\EFI\debian-direct\Linux.efi'</span></code></pre>
+<p>Try to reboot and run this bundle. If this is not your default entry, you
+might want to reorder the entries with <span class="docutils literal">efibootmgr</span> or in the UEFI setup. If
+don't want it to be your default entry, you should have a way to pop
+the boot selection menu during boot. On my laptop, I need to spam the <span class="docutils literal">F12</span>
+key because the UEFI boots really fast.</p>
+<p>If you managed to boot, congratulations! Only two more days are needed to
+complete the setup.</p>
+</section>
+<section id="unlock-the-luks-partition-with-the-tpm">
+<h3>Unlock the LUKS partition with the TPM</h3>
+<p>I said that we will use the TPM to store the LUKS key and give it back only when
+the chain of trust is unbroken. The TPM can store a key encrypted with hash
+values coming from what are called PCRs. You can find a complete list of PCRs <a class="reference external" href="https://ladyitris.wordpress.com/bitlocker-using-tpm/">here</a>. In this guide we will
+use just the following ones, but you are free to do as you like:</p>
+<ul class="simple">
+<li><p>PCR0: Core System Firmware executable code</p></li>
+<li><p>PCR2: extended or pluggable executable code</p></li>
+<li><p>PCR7: Secure Boot State</p></li>
+</ul>
+<p>The first two contains a hash of the UEFI firmware and the loaded modules.
+PCR7 contains a hash of a state that depends on which key was used to verify the
+signature of the EFI bootloader. When booting another bootloader (like a live
+distro or <em>Windows</em>), PCR7 will hold a different value which will not be able to
+unlock the LUKS key stored in the TPM.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>It looks like some UEFI firmwares do not change PCR7 depending on which
+signature was found in the bootloader. This defeats the purpose of this
+guide, and if that's your case... well, you're back to using a passphrase. If
+you want to check it out before continuing this guide, you should try to run
+<span class="docutils literal">tpm2_pcrread</span> and look at the PCR7 value (SHA1 or SHA256, it doesn't
+matter here). Run that command after booting through the <span class="docutils literal"><span class="pre">debian-direct</span></span>
+bundle we just created, and after booting through the usual GRUB boot. It
+should contain two different values.</p>
+</div>
+<p>Ok, still with us? Make sure that for the following part you didn't boot through
+GRUB and you are running the new <span class="docutils literal"><span class="pre">debian-direct</span></span> bundle. We will store the
+LUKS key with the current state of the TPM's PCRs.</p>
+<p>First, we need to create a new key for the LUKS partition:</p>
+<pre class="code console literal-block"><code><span class="generic prompt"># </span>dd <span class="keyword">if</span><span class="operator">=</span>/dev/random <span class="name variable">bs</span><span class="operator">=</span><span class="literal number">64</span> <span class="name variable">count</span><span class="operator">=</span><span class="literal number">1</span> <span class="punctuation">|</span> xxd -p -c999 <span class="punctuation">|</span> tr -d <span class="literal string single">'\n'</span> &gt; /root/luks_key
+<span class="generic output">1+0 records in
+1+0 records out
+64 bytes copied, 5.6501e-05 s, 1.1 MB/s
+</span><span class="generic prompt"># </span>cryptsetup luksAddKey /dev/nvme0n1p3 /root/luks_key --pbkdf-force-iterations<span class="operator">=</span><span class="literal number">4</span> --pbkdf-parallel<span class="operator">=</span><span class="literal number">1</span>  --pbkdf-memory<span class="operator">=</span><span class="literal number">32</span>
+<span class="generic output">Enter any existing passphrase: &lt;enter your existing passphrase here&gt;</span></code></pre>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For people wondering why we use a hexadecimal key instead of just a binary
+one, it's because the tool we'll use does not support binary keys.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For people wondering why we are specifying these PBKDF parameters, it's
+because PBKDFs are used to derive long keys from short, low entropy
+passphrases through a costly computation. In our case, the key already has
+512 bits of entropy which is what is needed by the AES algorithm used. The
+simple thing to do would be to completely disable the PBKDF, but cryptsetup
+does not allow that.</p>
+</div>
+<p>Let's register that new key into the TPM:</p>
+<pre class="code console literal-block"><code><span class="generic prompt"># </span>tpm2-initramfs-tool seal --data <span class="keyword">$(</span>cat /root/luks_key<span class="keyword">)</span> --pcrs <span class="literal number">0</span>,2,7</code></pre>
+<p>You can tweak the PCRs to use here.</p>
+<p>Now that the key is registered, we need to use it to unlock the partition during
+boot. The only place this can be done is in the initrd image, where the usual
+passphrase-based unlock occurs.</p>
+<p>The basic <span class="docutils literal"><span class="pre">tpm2-initramfs-tool</span></span> will only try to unlock with the TPM. Some
+times this will fail. Depending on what PCRs you have used, the TPM may be in a
+different state than now. When this happens, you want to be able to input your
+usual passphrase, boot your Linux, and fix the situation by resealing the key
+with the above command.</p>
+<p>To still be able to fallback to the passphrase method, let's add a new script in
+<span class="docutils literal"><span class="pre">/etc/initramfs-tools/tpm2-cryptsetup</span></span>:</p>
+<pre class="code shell literal-block"><code><span class="comment hashbang">#!/bin/sh
+</span>
+<span class="operator">[</span> <span class="literal string double">&quot;</span><span class="name variable">$CRYPTTAB_TRIED</span><span class="literal string double">&quot;</span> -lt <span class="literal string double">&quot;1&quot;</span> <span class="operator">]</span> <span class="operator">&amp;&amp;</span> <span class="name builtin">exec</span> tpm2-initramfs-tool unseal --pcrs <span class="literal number">0</span>,2,7
+
+stty -echo
+<span class="name builtin">echo</span> -n <span class="literal string double">&quot;Please enter the passphrase for </span><span class="name variable">$CRYPTTAB_NAME</span><span class="literal string double"> (</span><span class="name variable">$CRYPTTAB_SOURCE</span><span class="literal string double">): &quot;</span> &gt;<span class="punctuation">&amp;</span><span class="literal number">2</span>
+<span class="name builtin">read</span> pass
+<span class="name builtin">echo</span> &gt;<span class="punctuation">&amp;</span><span class="literal number">2</span>
+stty <span class="name builtin">echo</span>
+<span class="name builtin">echo</span> -n <span class="name variable">$pass</span></code></pre>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><span class="docutils literal">stty <span class="pre">-echo</span></span> allows the TTY to stop showing on the screen what we type,
+like when we type a password in <span class="docutils literal">sudo</span>. <span class="docutils literal">stty echo</span> reenables it, but
+for some reason that command fails, I couldn't fix it. It's fine though, as
+that TTY will be reset when the kernel boots.</p>
+</div>
+<p>Make it executable, even if we will never run it on our distro, otherwise
+<span class="docutils literal"><span class="pre">update-initramfs</span></span> will complain.</p>
+<pre class="code console literal-block"><code><span class="generic prompt"># </span>chmod +x /etc/initramfs-tools/tpm2-cryptsetup</code></pre>
+<p>Add a hook to copy all this stuff into the initrd image by creating a file named
+<span class="docutils literal"><span class="pre">/etc/initramfs-tools/hooks/tpm2-initramfs-tool</span></span>:</p>
+<pre class="code shell literal-block"><code>. /usr/share/initramfs-tools/hook-functions
+
+copy_exec /usr/lib/x86_64-linux-gnu/libtss2-tcti-device.so.0
+copy_exec /usr/bin/tpm2-initramfs-tool
+
+copy_exec /etc/initramfs-tools/tpm2-cryptsetup</code></pre>
+<p>Update your <span class="docutils literal">/etc/crypttab</span> file:</p>
+<pre class="code literal-block"><code>nvme0n1p3_crypt UUID=375027ee-9720-42ce-bd57-aec0e76f8b4a unseal luks,discard,keyscript=/etc/initramfs-tools/tpm2-cryptsetup</code></pre>
+<p>You just need to edit the line you already have in there. Replace <span class="docutils literal">none</span> by
+<span class="docutils literal">unseal</span> and add the <span class="docutils literal">keyscript</span> option.</p>
+<p>Recreate the initrd image:</p>
+<pre class="code console literal-block"><code><span class="generic prompt"># </span>update-initramfs -u -k all
+<span class="generic output">update-initramfs: Generating /boot/initrd.img-5.16.0-6-amd64
+warning: data remaining[91961712 vs 91972527]: gaps between PE/COFF sections?
+warning: data remaining[91961712 vs 91972528]: gaps between PE/COFF sections?
+Signing Unsigned original image</span></code></pre>
+<p>You can now reboot and your encrypted partition will be unlocked straight away
+without passphrase! If you try and reboot through GRUB however, the TPM will
+fail and our script above will ask for the passphrase to unlock the partition.</p>
+</section>
+</section>
+<section id="kernel-lockdown-by-pass">
+<h2>Kernel lockdown by-pass</h2>
+<pre class="code literal-block"><code>[    0.000000] Kernel is locked down from EFI Secure Boot; see man kernel_lockdown.7</code></pre>
+<p>Welcome to kernel lockdown! Or maybe you have always been on kernel lockdown
+since the beginning. Anyway, this is a feature you will enjoy much.</p>
+<section id="what-is-kernel-lockdown">
+<h3>What is kernel lockdown?</h3>
+<p>Kernel lockdown is a feature that (by-default, on most distros) will trigger
+when the machine is using Secure Boot.</p>
+<p>When this feature is activated, it will make sure that the code running in the
+kernel space is always trusted, right from the Secure Boot, to keep a chain of
+trust.</p>
+<p>Among other things, kernel lockdown will:</p>
+<ul class="simple">
+<li><p>prevent you from loading unsigned kernel modules (VirtualBox, or your favorite
+Wi-Fi driver you compiled yourself)</p></li>
+<li><p>prevent hibernation (suspend to swap) when the swap is unencrypted</p></li>
+</ul>
+<p>You can read about this in <span class="docutils literal">man 5 kernel_lockdown</span>.</p>
+<p><strong>However</strong>, while what the manual says is true, it might leave you
+thinking &quot;Oh, my swap is encrypted, I'm not concerned by the second point&quot;.
+Well, you are wrong. Hibernation is prevented when swap is unencrypted, but what
+is missing from the manual is that hibernation is <strong>also</strong> prevented when swap is
+encrypted.</p>
+<p><a class="reference external" href="https://github.com/torvalds/linux/blob/3e732ebf7316ac83e8562db7e64cc68aec390a18/kernel/power/hibernate.c#L82-L87">These lines</a>
+show that if we are in lockdown, hibernation is disabled, regardless of the swap
+state.</p>
+<p>We do want these two features, so let's (try to) fix this!</p>
+</section>
+<section id="signing-kernel-modules">
+<h3>Signing kernel modules</h3>
+<p>Let's start with the easy part. On <em>Debian</em>, most additional kernel modules will
+come in the form of DKMS modules. DKMS will take care of recompiling modules
+whenever a new kernel is installed.</p>
+<p><em>Debian</em> has thought of people needing to sign their modules. What you need to
+do is to simply enable the siging script in DKMS by editing
+<span class="docutils literal">/etc/dkms/sign_helper.sh</span> and uncommenting the last line:</p>
+<pre class="code shell literal-block"><code><span class="comment single">## Script to sign modules during build, script is called with kernel version
+## and module name
+</span><span class="name variable">sign_tool</span><span class="operator">=</span><span class="literal string double">&quot;/etc/dkms/sign_helper.sh&quot;</span></code></pre>
+<p>Then we need to provide the keys to the script as symlinks:</p>
+<pre class="code console literal-block"><code><span class="generic prompt"># </span>ln -s /root/secureboot/keys/DB.cer /root/dkms.der
+<span class="generic prompt"># </span>ln -s /root/secureboot/keys/DB.key /root/dkms.key</code></pre>
+<p>Replace with the appropriate paths for your keys. Now, recompile your
+current dkms modules to have them signed:</p>
+<pre class="code console literal-block"><code><span class="generic prompt"># </span>/usr/lib/dkms/dkms_autoinstaller start <span class="literal string backtick">`</span>uname -r<span class="literal string backtick">`</span></code></pre>
+<p>Boom! You're done, one less problem!</p>
+</section>
+<section id="activating-hibernation">
+<h3>Activating hibernation</h3>
+<p>So why is hibernation blocked in the first place?</p>
+<p>This is because during hibernation, you can boot another OS and edit the swap
+partition, replace kernel code and resume the system. This way you would get
+unsigned code into the kernel, which is not allowed by kernel lockdown, so it
+disables hibernation altogether. Except we don't care about this, since our swap
+is encrypted! Booting another OS will not allow anyone to inject code in the
+kernel.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can skip this next rant if you want.</p>
+<p>So your kind kernel developers added this constraint and disabled a very
+useful (and used) feature without giving you a choice, and your helpful
+distro developers decided to enable the lockdown for everyone having Secure
+Boot enabled. So if you have just Secure Boot enabled, you get the absolute
+tyrannical security of having hibernation disabled. What happens then? Of
+course you disable Secure Boot, who cares about security if you can't use
+your machine! This feature supposed to bring security forces the users to
+reduce their security!</p>
+</div>
+<p>We're not gonna disable Secure Boot after all these efforts, and we still want
+to enable hibernation. We have two solutions here:</p>
+<section id="recompile-your-own-kernel">
+<h4>Recompile your own kernel</h4>
+<p>If you recompile your kernel, you can disable the feature completely. This is
+what I did first, using the configuration from the official <em>Debian</em> kernel.</p>
+<p>This solution has a few downsides:</p>
+<ul class="simple">
+<li><p>The compiled kernel will not work anymore with GRUB (because it doesn't have the official <em>Debian</em> signature)</p></li>
+<li><p>Every time a new kernel is released, you will need to recompile it and not let <span class="docutils literal">apt</span> install the default one</p></li>
+<li><p>Recompiling the kernel takes more than 30 minutes on a decent CPU</p></li>
+</ul>
+<p>So we're not continuing with this solution, let's skip forward.</p>
+</section>
+<section id="disable-lockdown-on-a-running-kernel">
+<h4>Disable lockdown on a running kernel</h4>
+<p>Kudos to <a class="reference external" href="https://github.com/tux3">&#64;tux3</a> (a coworker of mine) for this solution!</p>
+<p>Another solution is to make a kernel module (which runs in kernel space) and
+disable the lockdown from there. This is not normally allowed, there is no function to do
+that, but there still is a way, and it does not have all the downsides of
+recompiling your own kernel.</p>
+<p>Download, compile and install <a class="reference external" href="https://github.com/blastrock/unlockdown">this project</a>:</p>
+<pre class="code console literal-block"><code><span class="generic prompt">$ </span>git clone https://github.com/blastrock/unlockdown.git
+<span class="generic prompt">$ </span><span class="name builtin">cd</span> unlockdown
+<span class="generic prompt">$ </span>make dkmsInstall</code></pre>
+<p>This will install a module that will remove the kernel lockdown when it is
+loaded, and put it back when it is unloaded. Since it is compiled by DKMS, it
+will be automatically signed thanks to the configuration we set before.</p>
+<p>Finally, we just need to load the module automatically on boot. You might want
+add it to <span class="docutils literal">/etc/modules</span>, and that's what I first did, but it was not enough!
+If you put it there you will be able to hibernate, but not to wake up. When you
+will try to wake up, the kernel will be back in lockdown and will refuse to
+restore the resume image. So we actually want to load the module even earlier,
+in the initrd phase, before the kernel attempts to resume. Add the module name
+to <span class="docutils literal"><span class="pre">/etc/initramfs-tools/modules</span></span>:</p>
+<pre class="code console literal-block"><code><span class="generic prompt"># </span><span class="name builtin">echo</span> unlockdown &gt;&gt; /etc/initramfs-tools/modules
+<span class="generic prompt"># </span>update-initramfs -u -k all
+<span class="generic output">update-initramfs: Generating /boot/initrd.img-5.16.0-6-amd64
+warning: data remaining[91961712 vs 91972527]: gaps between PE/COFF sections?
+warning: data remaining[91961712 vs 91972528]: gaps between PE/COFF sections?
+Signing Unsigned original image</span></code></pre>
+<p>You can now reboot and you'll be able to hibernate!</p>
+<p>In case of trouble, here is a couple checks you can do:</p>
+<pre class="code console literal-block"><code><span class="generic prompt"># </span>dmesg <span class="punctuation">|</span> grep unlockdown
+<span class="generic output">[    8.501198] unlockdown: loading out-of-tree module taints kernel.
+[    8.540051] unlockdown: kernel lockdown lifted
+</span><span class="generic prompt"># </span>pm-is-supported --hibernate <span class="operator">&amp;&amp;</span> <span class="name builtin">echo</span> <span class="literal string single">'Hibernate is supported'</span>
+<span class="generic output">Hibernate is supported</span></code></pre>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We could have enabled only hibernation and kept the lockdown feature, which
+still brings some more security to the kernel. Unfortunately, the technique
+we use to force-disable the lockdown feature is not applicable to
+hibernation.</p>
+<p>Hibernation is driven by a function called <span class="docutils literal">hibernation_available</span>, and
+while we can hijack it with a <span class="docutils literal">kretprobe</span> to make it return true, it will
+not allow hibernation. <span class="docutils literal"><span class="pre">pm-is-supported</span></span> will report that hibernation is
+supported, but <span class="docutils literal">/sys/power/disk</span> will still report <span class="docutils literal">[disabled]</span>. This
+happens because the <span class="docutils literal">hibernation_available</span> call is inlined by the
+compiler and thus our <span class="docutils literal">kretprobe</span> is not called in certain code paths.</p>
+</div>
+</section>
+</section>
+</section>
+<section id="other-security-tips">
+<h2>Other security tips</h2>
+<p>Congratulations, your laptop is mostly secure. Here are a few more tips to make
+sure an attacker can't get access to it.</p>
+<section id="panic-0">
+<h3><span class="docutils literal">panic=0</span></h3>
+<p>Do you remember about that <span class="docutils literal">panic=0</span> part in the kernel command line we put
+earlier? It means that when the kernel panics, it will not reboot automatically.
+This is completely unrelated to what we are doing... except that the initrd
+scripts will interpret that as &quot;do not spawn a root shell if anything goes
+wrong&quot;.</p>
+<p>This is a very important feature, because if you have a root shell in your
+Secure Boot environment, you can just unseal the key from the TPM and decrypt
+all the data from the disk!</p>
+</section>
+<section id="protect-your-uefi-setup">
+<h3>Protect your UEFI setup</h3>
+<p>This is not strictly necessary in our threat model, but you should put a
+password on your UEFI setup. This will prevent people from messing around and
+potentially adding other signatures keys to Secure Boot, even though these keys
+will alter PCR7 and prevent the TPM from unlocking your drive.</p>
+</section>
+<section id="disable-the-magic-sysrq-key">
+<h3>Disable the magic SysRq key</h3>
+<p><a class="reference external" href="https://en.wikipedia.org/wiki/Magic_SysRq_key">The magic SysRq key</a> allows running some special kernel actions. The most dangerous ones are disabled by default, and you should keep them that way for maximum security.</p>
+<p>For example, one of them (<span class="docutils literal">f</span>) will invoke the OOM-killer. This function
+<em>could</em> kill your lockscreen, giving full access to your desktop to a malicious
+user.</p>
+</section>
+<section id="protect-your-secure-boot-keys">
+<h3>Protect your Secure Boot keys</h3>
+<p>You don't want your private keys to be too easily available, don't let them lie
+around in your home directory. You should keep them in a protected folder (like
+<span class="docutils literal">/root</span>) so that only the necessary scripts can access them. Make sure that
+<span class="docutils literal">/root</span>'s permissions are <span class="docutils literal">700</span>.</p>
+</section>
+</section>
+<section id="conclusion">
+<h2>Conclusion</h2>
+<p>What a journey! I hope this guide helped you even a bit. I am by no mean an
+expert on the subject, if you spot something wrong or know of a better way to do
+this, <span class="strike">please leave a comment</span>. This is a simple HTML page, there are no
+comments, so idk, send me a fax maybe.</p>
+<p>Thanks for reading!</p>
+</section>
+<section id="useful-links">
+<h2>Useful links</h2>
+<p>Almost all of this guide comes from these links. They are ordered from the most
+general ones to the most specific ones.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://docs.microsoft.com/en-us/windows/security/information-protection/bitlocker/bitlocker-countermeasures">https://docs.microsoft.com/en-us/windows/security/information-protection/bitlocker/bitlocker-countermeasures</a></p></li>
+<li><p><a class="reference external" href="https://pawitp.medium.com/full-disk-encryption-on-arch-linux-backed-by-tpm-2-0-c0892cab9704">https://pawitp.medium.com/full-disk-encryption-on-arch-linux-backed-by-tpm-2-0-c0892cab9704</a></p></li>
+<li><p><a class="reference external" href="https://pawitp.medium.com/the-correct-way-to-use-secure-boot-with-linux-a0421796eade">https://pawitp.medium.com/the-correct-way-to-use-secure-boot-with-linux-a0421796eade</a></p></li>
+<li><p><a class="reference external" href="https://www.rodsbooks.com/efi-bootloaders/controlling-sb.html">https://www.rodsbooks.com/efi-bootloaders/controlling-sb.html</a></p></li>
+<li><p><a class="reference external" href="https://ladyitris.wordpress.com/bitlocker-using-tpm/">https://ladyitris.wordpress.com/bitlocker-using-tpm/</a></p></li>
+<li><p><a class="reference external" href="https://wiki.debian.org/SecureBoot">https://wiki.debian.org/SecureBoot</a></p></li>
+<li><p><a class="reference external" href="https://wiki.debian.org/EFIStub">https://wiki.debian.org/EFIStub</a></p></li>
+<li><p><a class="reference external" href="https://unix.stackexchange.com/questions/83545/initramfs-post-update-hook">https://unix.stackexchange.com/questions/83545/initramfs-post-update-hook</a></p></li>
+</ul>
+</section>
+</main>
+</body>
+</html>
