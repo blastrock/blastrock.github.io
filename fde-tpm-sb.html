@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-<meta charset="utf-8"/>
+<meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <title>The ultimate guide to Full Disk Encryption with TPM and Secure Boot (with hibernation support!)</title>
 <style type="text/css">
 
@@ -682,7 +682,7 @@ pre.code .inserted, code .inserted { background-color: #A3D289}
 <h1 class="title">The ultimate guide to Full Disk Encryption with TPM and Secure Boot (with hibernation support!)</h1>
 
 <p><em>Author</em>: Philippe Daouadi</p>
-<p><em>Date</em>: April 06, 2022</p>
+<p><em>Date</em>: 2022-04-06</p>
 <p><em>Difficulty</em>: way harder than it should be!</p>
 <p>You bought a laptop and want to secure it in case it gets stolen? Or you're just
 a nerd who wants to do nerd things? This guide is just for you!</p>
@@ -738,8 +738,8 @@ partitions:</p>
 your motherboard that can do cryptography stuff. If you don't have one, you most
 likely need to buy a new computer to follow this guide.</p>
 <p>You can check for that with this command:</p>
-<pre class="code console literal-block"><code><span class="generic prompt"># </span>dmesg <span class="punctuation">|</span> grep TPM
-<span class="generic output">[    0.974155] tpm_tis NTC0702:00: 2.0 TPM (device-id 0xFC, rev-id 1)</span></code></pre>
+<pre class="code console literal-block"><code><span class="generic prompt"># </span>dmesg<span class="whitespace"> </span><span class="punctuation">|</span><span class="whitespace"> </span>grep<span class="whitespace"> </span>TPM<span class="whitespace">
+</span><span class="generic output">[    0.974155] tpm_tis NTC0702:00: 2.0 TPM (device-id 0xFC, rev-id 1)</span></code></pre>
 <p>Make sure it says <span class="docutils literal">2.0</span></p>
 </section>
 <section id="secure-boot">
@@ -767,8 +767,8 @@ an encrypted root partition.</p>
 <h3>Set up Secure Boot with your own keys</h3>
 <p>You most likely already have Secure Boot enabled and working. You can easily
 check for that:</p>
-<pre class="code console literal-block"><code><span class="generic prompt">$ </span>mokutil --sb-state
-<span class="generic output">SecureBoot enabled</span></code></pre>
+<pre class="code console literal-block"><code><span class="generic prompt">$ </span>mokutil<span class="whitespace"> </span>--sb-state<span class="whitespace">
+</span><span class="generic output">SecureBoot enabled</span></code></pre>
 <p>If you don't, go to your UEFI setup and enable it.</p>
 <p>Even now that you have Secure Boot enabled, your kernel is signed
 by <em>Debian</em> which boots a <em>shim</em> itself signed by Microsoft. This means that
@@ -802,24 +802,26 @@ line in one single bootloader. As a bonus, it would be nice to do that
 automatically every time a new kernel is installed.</p>
 <p>Create a file named <span class="docutils literal"><span class="pre">/etc/kernel/postinst.d/zz-update-efistub</span></span> (the <span class="docutils literal">zz</span>
 part is important so that this is the last script run).</p>
+<p><em>EDIT 2023-08-18</em>: This next part has been updated. The objcopy method does not
+work anymore (the offsets probably changed), so it has been replaced by
+systemd's <span class="docutils literal">ukify</span> from <span class="docutils literal"><span class="pre">systemd-boot</span></span>.</p>
 <pre class="code shell literal-block"><code><span class="comment hashbang">#!/bin/sh
-</span>
-objcopy <span class="literal string escape">\
-</span>    --add-section .osrel<span class="operator">=</span><span class="literal string double">&quot;/usr/lib/os-release&quot;</span> --change-section-vma .osrel<span class="operator">=</span>0x20000 <span class="literal string escape">\
-</span>    --add-section .cmdline<span class="operator">=</span><span class="literal string double">&quot;/cmdline&quot;</span> --change-section-vma .cmdline<span class="operator">=</span>0x30000 <span class="literal string escape">\
-</span>    --add-section .linux<span class="operator">=</span><span class="literal string double">&quot;/vmlinuz&quot;</span> --change-section-vma .linux<span class="operator">=</span>0x40000 <span class="literal string escape">\
-</span>    --add-section .initrd<span class="operator">=</span><span class="literal string double">&quot;/initrd.img&quot;</span> --change-section-vma .initrd<span class="operator">=</span>0x3000000 <span class="literal string escape">\
-</span>    <span class="literal string double">&quot;/usr/lib/systemd/boot/efi/linuxx64.efi.stub&quot;</span> <span class="literal string double">&quot;/boot/efi/EFI/debian-direct/Linux.efi&quot;</span>
+</span><span class="whitespace">
+</span>/usr/lib/systemd/ukify<span class="whitespace"> </span>build<span class="whitespace"> </span><span class="literal string escape">\
+</span><span class="whitespace">    </span>--os-release<span class="whitespace"> </span>&#64;/usr/lib/os-release<span class="whitespace"> </span><span class="literal string escape">\
+</span><span class="whitespace">    </span>--cmdline<span class="whitespace"> </span>&#64;/cmdline<span class="whitespace"> </span><span class="literal string escape">\
+</span><span class="whitespace">    </span>--linux<span class="whitespace"> </span>/vmlinuz<span class="whitespace"> </span><span class="literal string escape">\
+</span><span class="whitespace">    </span>--initrd<span class="whitespace"> </span>/initrd.img<span class="whitespace"> </span><span class="literal string escape">\
+</span><span class="whitespace">    </span>--output<span class="whitespace"> </span><span class="literal string double">&quot;/boot/efi/EFI/debian-direct/Linux.efi&quot;</span><span class="whitespace">
 
-sbsign <span class="literal string escape">\
-</span>    --key /root/secureboot/keys/DB.key <span class="literal string escape">\
-</span>    --cert /root/secureboot/keys/DB.crt <span class="literal string escape">\
-</span>    --output /boot/efi/EFI/debian-direct/Linux.efi <span class="literal string escape">\
-</span>    /boot/efi/EFI/debian-direct/Linux.efi</code></pre>
-<p>This script makes use of the EFI stub provided by <span class="docutils literal"><span class="pre">systemd-boot</span></span>. Replace the
-paths to your Securet Boot keys in the script. The output file will go into
-<span class="docutils literal"><span class="pre">/boot/efi/EFI/debian-direct</span></span>, I called it like that because it skips GRUB and
-goes directly to linux, but you are free to rename it however you want.</p>
+</span>sbsign<span class="whitespace"> </span><span class="literal string escape">\
+</span><span class="whitespace">    </span>--key<span class="whitespace"> </span>/root/secureboot/keys/DB.key<span class="whitespace"> </span><span class="literal string escape">\
+</span><span class="whitespace">    </span>--cert<span class="whitespace"> </span>/root/secureboot/keys/DB.crt<span class="whitespace"> </span><span class="literal string escape">\
+</span><span class="whitespace">    </span>--output<span class="whitespace"> </span>/boot/efi/EFI/debian-direct/Linux.efi<span class="whitespace"> </span><span class="literal string escape">\
+</span><span class="whitespace">    </span>/boot/efi/EFI/debian-direct/Linux.efi</code></pre>
+<p>Replace the paths to your Securet Boot keys in the script. The output file will
+go into <span class="docutils literal"><span class="pre">/boot/efi/EFI/debian-direct</span></span>, I called it like that because it skips
+GRUB and goes directly to linux, but you are free to rename it however you want.</p>
 <p>The kernel command line must be storred in <span class="docutils literal">/cmdline</span> for the script to pick it up.</p>
 <pre class="code literal-block"><code>root=/dev/mapper/machine--vg-root rootfstype=ext4 add_efi_memmap panic=0 ro quiet</code></pre>
 <p>Replace the path to your root file system and the partition type. If you
@@ -828,13 +830,13 @@ verbose output.</p>
 <p>That <span class="docutils literal">panic=0</span> part is weird, yet important, we will explain it later.</p>
 <p>We also need to run this script whenever the initramfs is updated, set the
 execution permission and run it.</p>
-<pre class="code console literal-block"><code><span class="generic prompt"># </span>mkdir -p /etc/initramfs/post-update.d
-<span class="generic prompt"># </span>ln -s ../../kernel/postinst.d/zz-update-efistub /etc/initramfs/post-update.d/zz-update-efistub
-<span class="generic prompt"># </span>chmod +x /etc/kernel/postinst.d/zz-update-efistub
-<span class="generic prompt"># </span>mkdir /boot/efi/EFI/debian-direct
-<span class="generic prompt"># </span>/etc/kernel/postinst.d/zz-update-efistub</code></pre>
+<pre class="code console literal-block"><code><span class="generic prompt"># </span>mkdir<span class="whitespace"> </span>-p<span class="whitespace"> </span>/etc/initramfs/post-update.d<span class="whitespace">
+</span><span class="generic prompt"># </span>ln<span class="whitespace"> </span>-s<span class="whitespace"> </span>../../kernel/postinst.d/zz-update-efistub<span class="whitespace"> </span>/etc/initramfs/post-update.d/zz-update-efistub<span class="whitespace">
+</span><span class="generic prompt"># </span>chmod<span class="whitespace"> </span>+x<span class="whitespace"> </span>/etc/kernel/postinst.d/zz-update-efistub<span class="whitespace">
+</span><span class="generic prompt"># </span>mkdir<span class="whitespace"> </span>/boot/efi/EFI/debian-direct<span class="whitespace">
+</span><span class="generic prompt"># </span>/etc/kernel/postinst.d/zz-update-efistub</code></pre>
 <p>Now you can add an entry in your EFI setup with that new bootloader:</p>
-<pre class="code console literal-block"><code><span class="generic prompt"># </span>efibootmgr --disk /dev/nvme0n1 --create --label <span class="literal string double">&quot;debian-direct&quot;</span> --loader <span class="literal string single">'\EFI\debian-direct\Linux.efi'</span></code></pre>
+<pre class="code console literal-block"><code><span class="generic prompt"># </span>efibootmgr<span class="whitespace"> </span>--disk<span class="whitespace"> </span>/dev/nvme0n1<span class="whitespace"> </span>--create<span class="whitespace"> </span>--label<span class="whitespace"> </span><span class="literal string double">&quot;debian-direct&quot;</span><span class="whitespace"> </span>--loader<span class="whitespace"> </span><span class="literal string single">'\EFI\debian-direct\Linux.efi'</span></code></pre>
 <p>Try to reboot and run this bundle. If this is not your default entry, you
 might want to reorder the entries with <span class="docutils literal">efibootmgr</span> or in the UEFI setup. If
 don't want it to be your default entry, you should have a way to pop
@@ -859,7 +861,7 @@ PCR7 contains a hash of a state that depends on which key was used to verify the
 signature of the EFI bootloader. When booting another bootloader (like a live
 distro or <em>Windows</em>), PCR7 will hold a different value which will not be able to
 unlock the LUKS key stored in the TPM.</p>
-<div class="admonition note">
+<aside class="admonition note">
 <p class="admonition-title">Note</p>
 <p>It looks like some UEFI firmwares do not change PCR7 depending on which
 signature was found in the bootloader. This defeats the purpose of this
@@ -869,23 +871,23 @@ you want to check it out before continuing this guide, you should try to run
 matter here). Run that command after booting through the <span class="docutils literal"><span class="pre">debian-direct</span></span>
 bundle we just created, and after booting through the usual GRUB boot. It
 should contain two different values.</p>
-</div>
+</aside>
 <p>Ok, still with us? Make sure that for the following part you didn't boot through
 GRUB and you are running the new <span class="docutils literal"><span class="pre">debian-direct</span></span> bundle. We will store the
 LUKS key with the current state of the TPM's PCRs.</p>
 <p>First, we need to create a new key for the LUKS partition:</p>
-<pre class="code console literal-block"><code><span class="generic prompt"># </span>dd <span class="keyword">if</span><span class="operator">=</span>/dev/random <span class="name variable">bs</span><span class="operator">=</span><span class="literal number">64</span> <span class="name variable">count</span><span class="operator">=</span><span class="literal number">1</span> <span class="punctuation">|</span> xxd -p -c999 <span class="punctuation">|</span> tr -d <span class="literal string single">'\n'</span> &gt; /root/luks_key
-<span class="generic output">1+0 records in
+<pre class="code console literal-block"><code><span class="generic prompt"># </span>dd<span class="whitespace"> </span><span class="keyword">if</span><span class="operator">=</span>/dev/random<span class="whitespace"> </span><span class="name variable">bs</span><span class="operator">=</span><span class="literal number">64</span><span class="whitespace"> </span><span class="name variable">count</span><span class="operator">=</span><span class="literal number">1</span><span class="whitespace"> </span><span class="punctuation">|</span><span class="whitespace"> </span>xxd<span class="whitespace"> </span>-p<span class="whitespace"> </span>-c999<span class="whitespace"> </span><span class="punctuation">|</span><span class="whitespace"> </span>tr<span class="whitespace"> </span>-d<span class="whitespace"> </span><span class="literal string single">'\n'</span><span class="whitespace"> </span>&gt;<span class="whitespace"> </span>/root/luks_key<span class="whitespace">
+</span><span class="generic output">1+0 records in
 1+0 records out
 64 bytes copied, 5.6501e-05 s, 1.1 MB/s
-</span><span class="generic prompt"># </span>cryptsetup luksAddKey /dev/nvme0n1p3 /root/luks_key --pbkdf-force-iterations<span class="operator">=</span><span class="literal number">4</span> --pbkdf-parallel<span class="operator">=</span><span class="literal number">1</span>  --pbkdf-memory<span class="operator">=</span><span class="literal number">32</span>
-<span class="generic output">Enter any existing passphrase: &lt;enter your existing passphrase here&gt;</span></code></pre>
-<div class="admonition note">
+</span><span class="generic prompt"># </span>cryptsetup<span class="whitespace"> </span>luksAddKey<span class="whitespace"> </span>/dev/nvme0n1p3<span class="whitespace"> </span>/root/luks_key<span class="whitespace"> </span>--pbkdf-force-iterations<span class="operator">=</span><span class="literal number">4</span><span class="whitespace"> </span>--pbkdf-parallel<span class="operator">=</span><span class="literal number">1</span><span class="whitespace">  </span>--pbkdf-memory<span class="operator">=</span><span class="literal number">32</span><span class="whitespace">
+</span><span class="generic output">Enter any existing passphrase: &lt;enter your existing passphrase here&gt;</span></code></pre>
+<aside class="admonition note">
 <p class="admonition-title">Note</p>
 <p>For people wondering why we use a hexadecimal key instead of just a binary
 one, it's because the tool we'll use does not support binary keys.</p>
-</div>
-<div class="admonition note">
+</aside>
+<aside class="admonition note">
 <p class="admonition-title">Note</p>
 <p>For people wondering why we are specifying these PBKDF parameters, it's
 because PBKDFs are used to derive long keys from short, low entropy
@@ -893,9 +895,9 @@ passphrases through a costly computation. In our case, the key already has
 512 bits of entropy which is what is needed by the AES algorithm used. The
 simple thing to do would be to completely disable the PBKDF, but cryptsetup
 does not allow that.</p>
-</div>
+</aside>
 <p>Let's register that new key into the TPM:</p>
-<pre class="code console literal-block"><code><span class="generic prompt"># </span>tpm2-initramfs-tool seal --data <span class="keyword">$(</span>cat /root/luks_key<span class="keyword">)</span> --pcrs <span class="literal number">0</span>,2,7</code></pre>
+<pre class="code console literal-block"><code><span class="generic prompt"># </span>tpm2-initramfs-tool<span class="whitespace"> </span>seal<span class="whitespace"> </span>--data<span class="whitespace"> </span><span class="keyword">$(</span>cat<span class="whitespace"> </span>/root/luks_key<span class="keyword">)</span><span class="whitespace"> </span>--pcrs<span class="whitespace"> </span><span class="literal number">0</span>,2,7</code></pre>
 <p>You can tweak the PCRs to use here.</p>
 <p>Now that the key is registered, we need to use it to unlock the partition during
 boot. The only place this can be done is in the initrd image, where the usual
@@ -908,42 +910,42 @@ with the above command.</p>
 <p>To still be able to fallback to the passphrase method, let's add a new script in
 <span class="docutils literal"><span class="pre">/etc/initramfs-tools/tpm2-cryptsetup</span></span>:</p>
 <pre class="code shell literal-block"><code><span class="comment hashbang">#!/bin/sh
-</span>
-<span class="operator">[</span> <span class="literal string double">&quot;</span><span class="name variable">$CRYPTTAB_TRIED</span><span class="literal string double">&quot;</span> -lt <span class="literal string double">&quot;1&quot;</span> <span class="operator">]</span> <span class="operator">&amp;&amp;</span> <span class="name builtin">exec</span> tpm2-initramfs-tool unseal --pcrs <span class="literal number">0</span>,2,7
+</span><span class="whitespace">
+</span><span class="operator">[</span><span class="whitespace"> </span><span class="literal string double">&quot;</span><span class="name variable">$CRYPTTAB_TRIED</span><span class="literal string double">&quot;</span><span class="whitespace"> </span>-lt<span class="whitespace"> </span><span class="literal string double">&quot;1&quot;</span><span class="whitespace"> </span><span class="operator">]</span><span class="whitespace"> </span><span class="operator">&amp;&amp;</span><span class="whitespace"> </span><span class="name builtin">exec</span><span class="whitespace"> </span>tpm2-initramfs-tool<span class="whitespace"> </span>unseal<span class="whitespace"> </span>--pcrs<span class="whitespace"> </span><span class="literal number">0</span>,2,7<span class="whitespace">
 
-stty -echo
-<span class="name builtin">echo</span> -n <span class="literal string double">&quot;Please enter the passphrase for </span><span class="name variable">$CRYPTTAB_NAME</span><span class="literal string double"> (</span><span class="name variable">$CRYPTTAB_SOURCE</span><span class="literal string double">): &quot;</span> &gt;<span class="punctuation">&amp;</span><span class="literal number">2</span>
-<span class="name builtin">read</span> pass
-<span class="name builtin">echo</span> &gt;<span class="punctuation">&amp;</span><span class="literal number">2</span>
-stty <span class="name builtin">echo</span>
-<span class="name builtin">echo</span> -n <span class="name variable">$pass</span></code></pre>
-<div class="admonition note">
+</span>stty<span class="whitespace"> </span>-echo<span class="whitespace">
+</span><span class="name builtin">echo</span><span class="whitespace"> </span>-n<span class="whitespace"> </span><span class="literal string double">&quot;Please enter the passphrase for </span><span class="name variable">$CRYPTTAB_NAME</span><span class="literal string double"> (</span><span class="name variable">$CRYPTTAB_SOURCE</span><span class="literal string double">): &quot;</span><span class="whitespace"> </span>&gt;<span class="punctuation">&amp;</span><span class="literal number">2</span><span class="whitespace">
+</span><span class="name builtin">read</span><span class="whitespace"> </span>pass<span class="whitespace">
+</span><span class="name builtin">echo</span><span class="whitespace"> </span>&gt;<span class="punctuation">&amp;</span><span class="literal number">2</span><span class="whitespace">
+</span>stty<span class="whitespace"> </span><span class="name builtin">echo</span><span class="whitespace">
+</span><span class="name builtin">echo</span><span class="whitespace"> </span>-n<span class="whitespace"> </span><span class="name variable">$pass</span></code></pre>
+<aside class="admonition note">
 <p class="admonition-title">Note</p>
 <p><span class="docutils literal">stty <span class="pre">-echo</span></span> allows the TTY to stop showing on the screen what we type,
 like when we type a password in <span class="docutils literal">sudo</span>. <span class="docutils literal">stty echo</span> reenables it, but
 for some reason that command fails, I couldn't fix it. It's fine though, as
 that TTY will be reset when the kernel boots.</p>
-</div>
+</aside>
 <p>Make it executable, even if we will never run it on our distro, otherwise
 <span class="docutils literal"><span class="pre">update-initramfs</span></span> will complain.</p>
-<pre class="code console literal-block"><code><span class="generic prompt"># </span>chmod +x /etc/initramfs-tools/tpm2-cryptsetup</code></pre>
+<pre class="code console literal-block"><code><span class="generic prompt"># </span>chmod<span class="whitespace"> </span>+x<span class="whitespace"> </span>/etc/initramfs-tools/tpm2-cryptsetup</code></pre>
 <p>Add a hook to copy all this stuff into the initrd image by creating a file named
 <span class="docutils literal"><span class="pre">/etc/initramfs-tools/hooks/tpm2-initramfs-tool</span></span>:</p>
-<pre class="code shell literal-block"><code>. /usr/share/initramfs-tools/hook-functions
+<pre class="code shell literal-block"><code>.<span class="whitespace"> </span>/usr/share/initramfs-tools/hook-functions<span class="whitespace">
 
-copy_exec /usr/lib/x86_64-linux-gnu/libtss2-tcti-device.so.0
-copy_exec /usr/bin/tpm2-initramfs-tool
+</span>copy_exec<span class="whitespace"> </span>/usr/lib/x86_64-linux-gnu/libtss2-tcti-device.so.0<span class="whitespace">
+</span>copy_exec<span class="whitespace"> </span>/usr/bin/tpm2-initramfs-tool<span class="whitespace">
 
-copy_exec /etc/initramfs-tools/tpm2-cryptsetup</code></pre>
+</span>copy_exec<span class="whitespace"> </span>/etc/initramfs-tools/tpm2-cryptsetup</code></pre>
 <p>Make it executable too:</p>
-<pre class="code console literal-block"><code><span class="generic prompt"># </span>chmod +x /etc/initramfs-tools/hooks/tpm2-initramfs-tool</code></pre>
+<pre class="code console literal-block"><code><span class="generic prompt"># </span>chmod<span class="whitespace"> </span>+x<span class="whitespace"> </span>/etc/initramfs-tools/hooks/tpm2-initramfs-tool</code></pre>
 <p>Update your <span class="docutils literal">/etc/crypttab</span> file:</p>
 <pre class="code literal-block"><code>nvme0n1p3_crypt UUID=375027ee-9720-42ce-bd57-aec0e76f8b4a unseal luks,discard,keyscript=/etc/initramfs-tools/tpm2-cryptsetup</code></pre>
 <p>You just need to edit the line you already have in there. Replace <span class="docutils literal">none</span> by
 <span class="docutils literal">unseal</span> and add the <span class="docutils literal">keyscript</span> option.</p>
 <p>Recreate the initrd image:</p>
-<pre class="code console literal-block"><code><span class="generic prompt"># </span>update-initramfs -u -k all
-<span class="generic output">update-initramfs: Generating /boot/initrd.img-5.16.0-6-amd64
+<pre class="code console literal-block"><code><span class="generic prompt"># </span>update-initramfs<span class="whitespace"> </span>-u<span class="whitespace"> </span>-k<span class="whitespace"> </span>all<span class="whitespace">
+</span><span class="generic output">update-initramfs: Generating /boot/initrd.img-5.16.0-6-amd64
 warning: data remaining[91961712 vs 91972527]: gaps between PE/COFF sections?
 warning: data remaining[91961712 vs 91972528]: gaps between PE/COFF sections?
 Signing Unsigned original image</span></code></pre>
@@ -986,18 +988,17 @@ state.</p>
 <p>Let's start with the easy part. On <em>Debian</em>, most additional kernel modules will
 come in the form of DKMS modules. DKMS will take care of recompiling modules
 whenever a new kernel is installed.</p>
+<p><em>EDIT 2023-08-18</em>: This has changed too, but long ago and I didn't update this
+guide, sorry! The DKMS script was broken and fixed and changed the configuration
+format.</p>
 <p><em>Debian</em> has thought of people needing to sign their modules. What you need to
-do is to simply enable the siging script in DKMS by editing
-<span class="docutils literal">/etc/dkms/sign_helper.sh</span> and uncommenting the last line:</p>
-<pre class="code shell literal-block"><code><span class="comment single">## Script to sign modules during build, script is called with kernel version
-## and module name
-</span><span class="name variable">sign_tool</span><span class="operator">=</span><span class="literal string double">&quot;/etc/dkms/sign_helper.sh&quot;</span></code></pre>
-<p>Then we need to provide the keys to the script as symlinks:</p>
-<pre class="code console literal-block"><code><span class="generic prompt"># </span>ln -s /root/secureboot/keys/DB.cer /root/dkms.der
-<span class="generic prompt"># </span>ln -s /root/secureboot/keys/DB.key /root/dkms.key</code></pre>
+do is to simply enable siging in DKMS by editing <span class="docutils literal">/etc/dkms/sign_helper.sh</span>
+and adding the following lines:</p>
+<pre class="code shell literal-block"><code><span class="name variable">mok_signing_key</span><span class="operator">=</span>/root/secureboot/keys/dkms.key<span class="whitespace">
+</span><span class="name variable">mok_certificate</span><span class="operator">=</span>/root/secureboot/keys/dkms.der</code></pre>
 <p>Replace with the appropriate paths for your keys. Now, recompile your
 current dkms modules to have them signed:</p>
-<pre class="code console literal-block"><code><span class="generic prompt"># </span>/usr/lib/dkms/dkms_autoinstaller start <span class="literal string backtick">`</span>uname -r<span class="literal string backtick">`</span></code></pre>
+<pre class="code console literal-block"><code><span class="generic prompt"># </span>/usr/lib/dkms/dkms_autoinstaller<span class="whitespace"> </span>start<span class="whitespace"> </span><span class="literal string backtick">`</span>uname<span class="whitespace"> </span>-r<span class="literal string backtick">`</span></code></pre>
 <p>Boom! You're done, one less problem!</p>
 </section>
 <section id="activating-hibernation">
@@ -1009,7 +1010,9 @@ unsigned code into the kernel, which is not allowed by kernel lockdown, so it
 disables hibernation altogether. Except we don't care about this, since our swap
 is encrypted! Booting another OS will not allow anyone to inject code in the
 kernel.</p>
-<div class="admonition note">
+<p><em>EDIT 2023-08-18</em>: Someone implemented a solution that encrypts the swap and
+stores the keys in the TPM. <cite>The patches &lt;https://lore.kernel.org/lkml/20210220013255.1083202-1-matthewgarrett&#64;google.com/&gt;_</cite> have never been merged though.</p>
+<aside class="admonition note">
 <p class="admonition-title">Note</p>
 <p>You can skip this next rant if you want.</p>
 <p>So your kind kernel developers added this constraint and disabled a very
@@ -1020,7 +1023,7 @@ tyrannical security of having hibernation disabled. What happens then? Of
 course you disable Secure Boot, who cares about security if you can't use
 your machine! This feature supposed to bring security forces the users to
 reduce their security!</p>
-</div>
+</aside>
 <p>We're not gonna disable Secure Boot after all these efforts, and we still want
 to enable hibernation. We have two solutions here:</p>
 <section id="recompile-your-own-kernel">
@@ -1043,9 +1046,9 @@ disable the lockdown from there. This is not normally allowed, there is no funct
 that, but there still is a way, and it does not have all the downsides of
 recompiling your own kernel.</p>
 <p>Download, compile and install <a class="reference external" href="https://github.com/blastrock/unlockdown">this project</a>:</p>
-<pre class="code console literal-block"><code><span class="generic prompt">$ </span>git clone https://github.com/blastrock/unlockdown.git
-<span class="generic prompt">$ </span><span class="name builtin">cd</span> unlockdown
-<span class="generic prompt">$ </span>make dkmsInstall</code></pre>
+<pre class="code console literal-block"><code><span class="generic prompt">$ </span>git<span class="whitespace"> </span>clone<span class="whitespace"> </span>https://github.com/blastrock/unlockdown.git<span class="whitespace">
+</span><span class="generic prompt">$ </span><span class="name builtin">cd</span><span class="whitespace"> </span>unlockdown<span class="whitespace">
+</span><span class="generic prompt">$ </span>make<span class="whitespace"> </span>dkmsInstall</code></pre>
 <p>This will install a module that will remove the kernel lockdown when it is
 loaded, and put it back when it is unloaded. Since it is compiled by DKMS, it
 will be automatically signed thanks to the configuration we set before.</p>
@@ -1056,20 +1059,25 @@ will try to wake up, the kernel will be back in lockdown and will refuse to
 restore the resume image. So we actually want to load the module even earlier,
 in the initrd phase, before the kernel attempts to resume. Add the module name
 to <span class="docutils literal"><span class="pre">/etc/initramfs-tools/modules</span></span>:</p>
-<pre class="code console literal-block"><code><span class="generic prompt"># </span><span class="name builtin">echo</span> unlockdown &gt;&gt; /etc/initramfs-tools/modules
-<span class="generic prompt"># </span>update-initramfs -u -k all
-<span class="generic output">update-initramfs: Generating /boot/initrd.img-5.16.0-6-amd64
+<pre class="code console literal-block"><code><span class="generic prompt"># </span><span class="name builtin">echo</span><span class="whitespace"> </span>unlockdown<span class="whitespace"> </span>&gt;&gt;<span class="whitespace"> </span>/etc/initramfs-tools/modules<span class="whitespace">
+</span><span class="generic prompt"># </span>update-initramfs<span class="whitespace"> </span>-u<span class="whitespace"> </span>-k<span class="whitespace"> </span>all<span class="whitespace">
+</span><span class="generic output">update-initramfs: Generating /boot/initrd.img-5.16.0-6-amd64
 warning: data remaining[91961712 vs 91972527]: gaps between PE/COFF sections?
 warning: data remaining[91961712 vs 91972528]: gaps between PE/COFF sections?
 Signing Unsigned original image</span></code></pre>
+<p><em>EDIT 2023-08-18</em>: Actually, we now need one final step. unlockdown uses an API
+that's now disabled by default (from Linux 6.3 or something). To enable it back,
+you need to add the <span class="docutils literal">ibt=off</span> to the kernel command line. Note that this
+disables a vulnerability mitigation. The <span class="docutils literal">/etc/cmdline</span> file becomes:</p>
+<pre class="code literal-block"><code>root=/dev/mapper/machine--vg-root rootfstype=ext4 add_efi_memmap panic=0 ibt=off ro quiet</code></pre>
 <p>You can now reboot and you'll be able to hibernate!</p>
 <p>In case of trouble, here is a couple checks you can do:</p>
-<pre class="code console literal-block"><code><span class="generic prompt"># </span>dmesg <span class="punctuation">|</span> grep unlockdown
-<span class="generic output">[    8.501198] unlockdown: loading out-of-tree module taints kernel.
+<pre class="code console literal-block"><code><span class="generic prompt"># </span>dmesg<span class="whitespace"> </span><span class="punctuation">|</span><span class="whitespace"> </span>grep<span class="whitespace"> </span>unlockdown<span class="whitespace">
+</span><span class="generic output">[    8.501198] unlockdown: loading out-of-tree module taints kernel.
 [    8.540051] unlockdown: kernel lockdown lifted
-</span><span class="generic prompt"># </span>pm-is-supported --hibernate <span class="operator">&amp;&amp;</span> <span class="name builtin">echo</span> <span class="literal string single">'Hibernate is supported'</span>
-<span class="generic output">Hibernate is supported</span></code></pre>
-<div class="admonition note">
+</span><span class="generic prompt"># </span>pm-is-supported<span class="whitespace"> </span>--hibernate<span class="whitespace"> </span><span class="operator">&amp;&amp;</span><span class="whitespace"> </span><span class="name builtin">echo</span><span class="whitespace"> </span><span class="literal string single">'Hibernate is supported'</span><span class="whitespace">
+</span><span class="generic output">Hibernate is supported</span></code></pre>
+<aside class="admonition note">
 <p class="admonition-title">Note</p>
 <p>We could have enabled only hibernation and kept the lockdown feature, which
 still brings some more security to the kernel. Unfortunately, the technique
@@ -1081,7 +1089,7 @@ not allow hibernation. <span class="docutils literal"><span class="pre">pm-is-su
 supported, but <span class="docutils literal">/sys/power/disk</span> will still report <span class="docutils literal">[disabled]</span>. This
 happens because the <span class="docutils literal">hibernation_available</span> call is inlined by the
 compiler and thus our <span class="docutils literal">kretprobe</span> is not called in certain code paths.</p>
-</div>
+</aside>
 </section>
 </section>
 </section>
