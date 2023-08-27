@@ -557,17 +557,17 @@ div.abstract p.topic-title {
   text-align: center }
 
 div.admonition, div.attention, div.caution, div.danger, div.error,
-div.hint, div.important, div.note, div.tip, div.warning {
+div.hint, div.important, aside.note, div.tip, div.warning {
   margin: 2em ;
   border: medium outset ;
   padding: 1em }
 
-div.note, div.warning {
+aside.note, div.warning {
   margin:1.5em 0px;
   border: none;
 }
 
-div.note p.admonition-title,
+aside.note p.admonition-title,
 div.warning p.admonition-title
 {
   display:none;
@@ -577,14 +577,14 @@ div.warning p.admonition-title
  * http://css-tricks.com/snippets/css/clear-fix/
  */
 
-div.note:after,
+aside.note:after,
 div.warning:after {
   content:"";
   display:table;
   clear:both;
 }
 
-div.note p:nth-child(2):before,
+aside.note p:nth-child(2):before,
 div.warning p:nth-child(2):before {
   display:block;
   float:left;
