@@ -780,7 +780,8 @@ a different key that we will enroll ourselves in our UEFI firmware.</p>
 generate your own keys</a>.
 If you want to follow what I did, I generated them in <span class="docutils literal">/root/secureboot/keys</span>.
 We'll only need the DB key for now, but you can read the rest of the guide if
-you are curious about the other keys.</p>
+you are curious about the other keys. The ArchWiki also has <a class="reference external" href="https://wiki.archlinux.org/title/Unified_Extensible_Firmware_Interface/Secure_Boot#Using_your_own_keys">a complete
+guide</a> to enroll your keys.</p>
 <p>So, copy <span class="docutils literal">DB.cer</span>, <span class="docutils literal">DB.esl</span> and <span class="docutils literal">DB.auth</span> to your EFI partitions,
 somewhere like <span class="docutils literal">/boot/efi/certs/</span>, reboot into UEFI setup and enroll the new
 key (you'll probably only need one of those files).</p>
@@ -864,13 +865,18 @@ unlock the LUKS key stored in the TPM.</p>
 <aside class="admonition note">
 <p class="admonition-title">Note</p>
 <p>It looks like some UEFI firmwares do not change PCR7 depending on which
-signature was found in the bootloader. This defeats the purpose of this
-guide, and if that's your case... well, you're back to using a passphrase. If
-you want to check it out before continuing this guide, you should try to run
-<span class="docutils literal">tpm2_pcrread</span> and look at the PCR7 value (SHA1 or SHA256, it doesn't
-matter here). Run that command after booting through the <span class="docutils literal"><span class="pre">debian-direct</span></span>
-bundle we just created, and after booting through the usual GRUB boot. It
-should contain two different values.</p>
+signature was found in the bootloader. If you want to check before continuing
+to read this guide, you need to boot once through the <span class="docutils literal"><span class="pre">debian-direct</span></span>
+bundle we just created, and and once through the usual GRUB boot. After each
+of these boots, run <span class="docutils literal">tpm2_pcrread</span> and look at the PCR7 value (SHA1 or
+SHA256, it doesn't matter here). They should be different for your setup to
+be secure.</p>
+<p>If they are equal, you can either give up on this guide and use a
+passphrase, or you can seal the TPM key using PCR4 (in addition to the other
+PCRs). PCR4 has a hash of the boot loader. In our case, this is the
+<span class="docutils literal"><span class="pre">debian-direct</span></span> bundle. The downside to this is that you will need to
+re-seal the key in your TPM each time you upgrade your kernel. Credits to
+<a class="reference external" href="https://github.com/sirtoobii">sirtoobii</a> for the workaround.</p>
 </aside>
 <p>Ok, still with us? Make sure that for the following part you didn't boot through
 GRUB and you are running the new <span class="docutils literal"><span class="pre">debian-direct</span></span> bundle. We will store the
@@ -907,25 +913,15 @@ times this will fail. Depending on what PCRs you have used, the TPM may be in a
 different state than now. When this happens, you want to be able to input your
 usual passphrase, boot your Linux, and fix the situation by resealing the key
 with the above command.</p>
+<p><em>EDIT 2023-10-08</em>: The previous implementation of the fallback script was a bit
+flaky, <span class="docutils literal">askpass</span> is more reliable. Credits to <a class="reference external" href="https://github.com/sirtoobii">sirtoobii</a> for the fix.</p>
 <p>To still be able to fallback to the passphrase method, let's add a new script in
 <span class="docutils literal"><span class="pre">/etc/initramfs-tools/tpm2-cryptsetup</span></span>:</p>
 <pre class="code shell literal-block"><code><span class="comment hashbang">#!/bin/sh
 </span><span class="whitespace">
 </span><span class="operator">[</span><span class="whitespace"> </span><span class="literal string double">&quot;</span><span class="name variable">$CRYPTTAB_TRIED</span><span class="literal string double">&quot;</span><span class="whitespace"> </span>-lt<span class="whitespace"> </span><span class="literal string double">&quot;1&quot;</span><span class="whitespace"> </span><span class="operator">]</span><span class="whitespace"> </span><span class="operator">&amp;&amp;</span><span class="whitespace"> </span><span class="name builtin">exec</span><span class="whitespace"> </span>tpm2-initramfs-tool<span class="whitespace"> </span>unseal<span class="whitespace"> </span>--pcrs<span class="whitespace"> </span><span class="literal number">0</span>,2,7<span class="whitespace">
 
-</span>stty<span class="whitespace"> </span>-echo<span class="whitespace">
-</span><span class="name builtin">echo</span><span class="whitespace"> </span>-n<span class="whitespace"> </span><span class="literal string double">&quot;Please enter the passphrase for </span><span class="name variable">$CRYPTTAB_NAME</span><span class="literal string double"> (</span><span class="name variable">$CRYPTTAB_SOURCE</span><span class="literal string double">): &quot;</span><span class="whitespace"> </span>&gt;<span class="punctuation">&amp;</span><span class="literal number">2</span><span class="whitespace">
-</span><span class="name builtin">read</span><span class="whitespace"> </span>pass<span class="whitespace">
-</span><span class="name builtin">echo</span><span class="whitespace"> </span>&gt;<span class="punctuation">&amp;</span><span class="literal number">2</span><span class="whitespace">
-</span>stty<span class="whitespace"> </span><span class="name builtin">echo</span><span class="whitespace">
-</span><span class="name builtin">echo</span><span class="whitespace"> </span>-n<span class="whitespace"> </span><span class="name variable">$pass</span></code></pre>
-<aside class="admonition note">
-<p class="admonition-title">Note</p>
-<p><span class="docutils literal">stty <span class="pre">-echo</span></span> allows the TTY to stop showing on the screen what we type,
-like when we type a password in <span class="docutils literal">sudo</span>. <span class="docutils literal">stty echo</span> reenables it, but
-for some reason that command fails, I couldn't fix it. It's fine though, as
-that TTY will be reset when the kernel boots.</p>
-</aside>
+</span>/usr/bin/askpass<span class="whitespace"> </span><span class="literal string double">&quot;Passphrase for </span><span class="name variable">$CRYPTTAB_SOURCE</span><span class="literal string double"> (</span><span class="name variable">$CRYPTTAB_NAME</span><span class="literal string double">): &quot;</span></code></pre>
 <p>Make it executable, even if we will never run it on our distro, otherwise
 <span class="docutils literal"><span class="pre">update-initramfs</span></span> will complain.</p>
 <pre class="code console literal-block"><code><span class="generic prompt"># </span>chmod<span class="whitespace"> </span>+x<span class="whitespace"> </span>/etc/initramfs-tools/tpm2-cryptsetup</code></pre>
@@ -935,6 +931,7 @@ that TTY will be reset when the kernel boots.</p>
 
 </span>copy_exec<span class="whitespace"> </span>/usr/lib/x86_64-linux-gnu/libtss2-tcti-device.so.0<span class="whitespace">
 </span>copy_exec<span class="whitespace"> </span>/usr/bin/tpm2-initramfs-tool<span class="whitespace">
+</span>copy_exec<span class="whitespace"> </span>/usr/lib/cryptsetup/askpass<span class="whitespace"> </span>/usr/bin<span class="whitespace">
 
 </span>copy_exec<span class="whitespace"> </span>/etc/initramfs-tools/tpm2-cryptsetup</code></pre>
 <p>Make it executable too:</p>
@@ -1011,7 +1008,7 @@ disables hibernation altogether. Except we don't care about this, since our swap
 is encrypted! Booting another OS will not allow anyone to inject code in the
 kernel.</p>
 <p><em>EDIT 2023-08-18</em>: Someone implemented a solution that encrypts the swap and
-stores the keys in the TPM. <cite>The patches &lt;https://lore.kernel.org/lkml/20210220013255.1083202-1-matthewgarrett&#64;google.com/&gt;_</cite> have never been merged though.</p>
+stores the keys in the TPM. <a class="reference external" href="https://lore.kernel.org/lkml/20210220013255.1083202-1-matthewgarrett&#64;google.com/">The patches</a> have never been merged though.</p>
 <aside class="admonition note">
 <p class="admonition-title">Note</p>
 <p>You can skip this next rant if you want.</p>
@@ -1135,7 +1132,7 @@ around in your home directory. You should keep them in a protected folder (like
 <p>What a journey! I hope this guide helped you even a bit. I am by no mean an
 expert on the subject, if you spot something wrong or know of a better way to do
 this, <span class="strike">please leave a comment</span>. This is a simple HTML page, there are no
-comments, so idk, send me a fax maybe.</p>
+comments, so idk, send me a fax maybe or open an issue on <a class="reference external" href="https://github.com/blastrock/blastrock.github.io">GitHub</a>.</p>
 <p>Thanks for reading!</p>
 </section>
 <section id="useful-links">
