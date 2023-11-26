@@ -937,7 +937,7 @@ flaky, <span class="docutils literal">askpass</span> is more reliable. Credits t
 <p>Make it executable too:</p>
 <pre class="code console literal-block"><code><span class="generic prompt"># </span>chmod<span class="whitespace"> </span>+x<span class="whitespace"> </span>/etc/initramfs-tools/hooks/tpm2-initramfs-tool</code></pre>
 <p>Update your <span class="docutils literal">/etc/crypttab</span> file:</p>
-<pre class="code literal-block"><code>nvme0n1p3_crypt UUID=375027ee-9720-42ce-bd57-aec0e76f8b4a unseal luks,discard,keyscript=/etc/initramfs-tools/tpm2-cryptsetup</code></pre>
+<pre class="code literal-block"><code>nvme0n1p3_crypt UUID=375027ee-9720-42ce-bd57-aec0e76f8b4a none luks,discard,keyscript=/etc/initramfs-tools/tpm2-cryptsetup</code></pre>
 <p>You just need to edit the line you already have in there. Replace <span class="docutils literal">none</span> by
 <span class="docutils literal">unseal</span> and add the <span class="docutils literal">keyscript</span> option.</p>
 <p>Recreate the initrd image:</p>
