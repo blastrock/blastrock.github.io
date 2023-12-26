@@ -2,8 +2,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta charset="utf-8" />
+<meta name="generator" content="Docutils 0.20.1: https://docutils.sourceforge.io/" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <title>The ultimate guide to Full Disk Encryption with TPM and Secure Boot (with hibernation support!)</title>
 <style type="text/css">
 
@@ -824,7 +824,7 @@ systemd's <span class="docutils literal">ukify</span> from <span class="docutils
 go into <span class="docutils literal"><span class="pre">/boot/efi/EFI/debian-direct</span></span>, I called it like that because it skips
 GRUB and goes directly to linux, but you are free to rename it however you want.</p>
 <p>The kernel command line must be storred in <span class="docutils literal">/cmdline</span> for the script to pick it up.</p>
-<pre class="code literal-block"><code>root=/dev/mapper/machine--vg-root rootfstype=ext4 add_efi_memmap panic=0 ro quiet</code></pre>
+<pre class="code literal-block"><code>root=/dev/mapper/machine--vg-root panic=0 ro quiet</code></pre>
 <p>Replace the path to your root file system and the partition type. If you
 encounter problems, you might want to remove the <span class="docutils literal">quiet</span> part to have a more
 verbose output.</p>
@@ -875,8 +875,7 @@ be secure.</p>
 passphrase, or you can seal the TPM key using PCR4 (in addition to the other
 PCRs). PCR4 has a hash of the boot loader. In our case, this is the
 <span class="docutils literal"><span class="pre">debian-direct</span></span> bundle. The downside to this is that you will need to
-re-seal the key in your TPM each time you upgrade your kernel. Credits to
-<a class="reference external" href="https://github.com/sirtoobii">sirtoobii</a> for the workaround.</p>
+re-seal the key in your TPM each time you upgrade your kernel.</p>
 </aside>
 <p>Ok, still with us? Make sure that for the following part you didn't boot through
 GRUB and you are running the new <span class="docutils literal"><span class="pre">debian-direct</span></span> bundle. We will store the
@@ -914,7 +913,7 @@ different state than now. When this happens, you want to be able to input your
 usual passphrase, boot your Linux, and fix the situation by resealing the key
 with the above command.</p>
 <p><em>EDIT 2023-10-08</em>: The previous implementation of the fallback script was a bit
-flaky, <span class="docutils literal">askpass</span> is more reliable. Credits to <a class="reference external" href="https://github.com/sirtoobii">sirtoobii</a> for the fix.</p>
+flaky, <span class="docutils literal">askpass</span> is more reliable.</p>
 <p>To still be able to fallback to the passphrase method, let's add a new script in
 <span class="docutils literal"><span class="pre">/etc/initramfs-tools/tpm2-cryptsetup</span></span>:</p>
 <pre class="code shell literal-block"><code><span class="comment hashbang">#!/bin/sh
@@ -927,19 +926,34 @@ flaky, <span class="docutils literal">askpass</span> is more reliable. Credits t
 <pre class="code console literal-block"><code><span class="generic prompt"># </span>chmod<span class="whitespace"> </span>+x<span class="whitespace"> </span>/etc/initramfs-tools/tpm2-cryptsetup</code></pre>
 <p>Add a hook to copy all this stuff into the initrd image by creating a file named
 <span class="docutils literal"><span class="pre">/etc/initramfs-tools/hooks/tpm2-initramfs-tool</span></span>:</p>
-<pre class="code shell literal-block"><code>.<span class="whitespace"> </span>/usr/share/initramfs-tools/hook-functions<span class="whitespace">
+<pre class="code shell literal-block"><code><span class="comment hashbang">#!/bin/sh
+</span><span class="name variable">PREREQ</span><span class="operator">=</span><span class="literal string double">&quot;&quot;</span><span class="whitespace">
+</span>prereqs<span class="operator">()</span><span class="whitespace">
+</span><span class="operator">{</span><span class="whitespace">
+   </span><span class="name builtin">echo</span><span class="whitespace"> </span><span class="literal string double">&quot;</span><span class="name variable">$PREREQ</span><span class="literal string double">&quot;</span><span class="whitespace">
+</span><span class="operator">}</span><span class="whitespace">
+
+</span><span class="keyword">case</span><span class="whitespace"> </span><span class="name variable">$1</span><span class="whitespace"> </span><span class="keyword">in</span><span class="whitespace">
+</span>prereqs<span class="operator">)</span><span class="whitespace">
+   </span>prereqs<span class="whitespace">
+   </span><span class="name builtin">exit</span><span class="whitespace"> </span><span class="literal number">0</span><span class="whitespace">
+   </span><span class="punctuation">;;</span><span class="whitespace">
+</span><span class="keyword">esac</span><span class="whitespace">
+
+</span>.<span class="whitespace"> </span>/usr/share/initramfs-tools/hook-functions<span class="whitespace">
 
 </span>copy_exec<span class="whitespace"> </span>/usr/lib/x86_64-linux-gnu/libtss2-tcti-device.so.0<span class="whitespace">
 </span>copy_exec<span class="whitespace"> </span>/usr/bin/tpm2-initramfs-tool<span class="whitespace">
 </span>copy_exec<span class="whitespace"> </span>/usr/lib/cryptsetup/askpass<span class="whitespace"> </span>/usr/bin<span class="whitespace">
 
 </span>copy_exec<span class="whitespace"> </span>/etc/initramfs-tools/tpm2-cryptsetup</code></pre>
-<p>Make it executable too:</p>
+<p>The long and obscure prologue to this script is required according to <a class="reference external" href="https://manpages.debian.org/buster/initramfs-tools-core/initramfs-tools.7.en.html#Header">the
+initramfs-tool's manual</a>. Make the script executable too:</p>
 <pre class="code console literal-block"><code><span class="generic prompt"># </span>chmod<span class="whitespace"> </span>+x<span class="whitespace"> </span>/etc/initramfs-tools/hooks/tpm2-initramfs-tool</code></pre>
 <p>Update your <span class="docutils literal">/etc/crypttab</span> file:</p>
-<pre class="code literal-block"><code>nvme0n1p3_crypt UUID=375027ee-9720-42ce-bd57-aec0e76f8b4a unseal luks,discard,keyscript=/etc/initramfs-tools/tpm2-cryptsetup</code></pre>
-<p>You just need to edit the line you already have in there. Replace <span class="docutils literal">none</span> by
-<span class="docutils literal">unseal</span> and add the <span class="docutils literal">keyscript</span> option.</p>
+<pre class="code literal-block"><code>nvme0n1p3_crypt UUID=375027ee-9720-42ce-bd57-aec0e76f8b4a none luks,discard,keyscript=/etc/initramfs-tools/tpm2-cryptsetup</code></pre>
+<p>You just need to edit the line you already have in there, just add the
+<span class="docutils literal">keyscript</span> option.</p>
 <p>Recreate the initrd image:</p>
 <pre class="code console literal-block"><code><span class="generic prompt"># </span>update-initramfs<span class="whitespace"> </span>-u<span class="whitespace"> </span>-k<span class="whitespace"> </span>all<span class="whitespace">
 </span><span class="generic output">update-initramfs: Generating /boot/initrd.img-5.16.0-6-amd64
@@ -1037,7 +1051,6 @@ what I did first, using the configuration from the official <em>Debian</em> kern
 </section>
 <section id="disable-lockdown-on-a-running-kernel">
 <h4>Disable lockdown on a running kernel</h4>
-<p>Kudos to <a class="reference external" href="https://github.com/tux3">&#64;tux3</a> (a coworker of mine) for this solution!</p>
 <p>Another solution is to make a kernel module (which runs in kernel space) and
 disable the lockdown from there. This is not normally allowed, there is no function to do
 that, but there still is a way, and it does not have all the downsides of
@@ -1066,7 +1079,7 @@ Signing Unsigned original image</span></code></pre>
 that's now disabled by default (from Linux 6.3 or something). To enable it back,
 you need to add the <span class="docutils literal">ibt=off</span> to the kernel command line. Note that this
 disables a vulnerability mitigation. The <span class="docutils literal">/etc/cmdline</span> file becomes:</p>
-<pre class="code literal-block"><code>root=/dev/mapper/machine--vg-root rootfstype=ext4 add_efi_memmap panic=0 ibt=off ro quiet</code></pre>
+<pre class="code literal-block"><code>root=/dev/mapper/machine--vg-root panic=0 ibt=off ro quiet</code></pre>
 <p>You can now reboot and you'll be able to hibernate!</p>
 <p>In case of trouble, here is a couple checks you can do:</p>
 <pre class="code console literal-block"><code><span class="generic prompt"># </span>dmesg<span class="whitespace"> </span><span class="punctuation">|</span><span class="whitespace"> </span>grep<span class="whitespace"> </span>unlockdown<span class="whitespace">
@@ -1134,6 +1147,18 @@ expert on the subject, if you spot something wrong or know of a better way to do
 this, <span class="strike">please leave a comment</span>. This is a simple HTML page, there are no
 comments, so idk, send me a fax maybe or open an issue on <a class="reference external" href="https://github.com/blastrock/blastrock.github.io">GitHub</a>.</p>
 <p>Thanks for reading!</p>
+</section>
+<section id="credits">
+<h2>Credits</h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/tux3">&#64;tux3</a>: Lockdown workaround idea and most of the
+implementation.</p></li>
+<li><p><a class="reference external" href="https://github.com/sirtoobii">&#64;sirtoobii</a>: Workaround for the case where
+PCR7 does not hash the boot loader public key.</p></li>
+<li><p><a class="reference external" href="https://github.com/sirtoobii">&#64;sirtoobii</a>: Fix to correctly fall back and
+ask the LUKS password when TPM unsealing fails.</p></li>
+<li><p><a class="reference external" href="https://github.com/nazar-pc">&#64;nazar-pc</a>: Various fixes.</p></li>
+</ul>
 </section>
 <section id="useful-links">
 <h2>Useful links</h2>
