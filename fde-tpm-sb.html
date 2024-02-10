@@ -801,13 +801,16 @@ insert untrusted code in there without breaking Secure Boot.</p>
 <p>What we want to do is to bundle our kernel, our initrd and the kernel command
 line in one single bootloader. As a bonus, it would be nice to do that
 automatically every time a new kernel is installed.</p>
-<p>Create a file named <span class="docutils literal"><span class="pre">/etc/kernel/postinst.d/zz-update-efistub</span></span> (the <span class="docutils literal">zz</span>
-part is important so that this is the last script run).</p>
 <p><em>EDIT 2023-08-18</em>: This next part has been updated. The objcopy method does not
 work anymore (the offsets probably changed), so it has been replaced by
 systemd's <span class="docutils literal">ukify</span> from <span class="docutils literal"><span class="pre">systemd-boot</span></span>.</p>
+<p>You will need to install <span class="docutils literal"><span class="pre">systemd-ukify</span></span> and <span class="docutils literal"><span class="pre">systemd-boot-efi</span></span>. Then,
+create a file named <span class="docutils literal"><span class="pre">/etc/kernel/postinst.d/zz-update-efistub</span></span> (the <span class="docutils literal">zz</span>
+part is important so that this is the last script run).</p>
 <pre class="code shell literal-block"><code><span class="comment hashbang">#!/bin/sh
 </span><span class="whitespace">
+</span><span class="name builtin">set</span><span class="whitespace"> </span>-e<span class="whitespace">
+
 </span>/usr/lib/systemd/ukify<span class="whitespace"> </span>build<span class="whitespace"> </span><span class="literal string escape">\
 </span><span class="whitespace">    </span>--os-release<span class="whitespace"> </span>&#64;/usr/lib/os-release<span class="whitespace"> </span><span class="literal string escape">\
 </span><span class="whitespace">    </span>--cmdline<span class="whitespace"> </span>&#64;/cmdline<span class="whitespace"> </span><span class="literal string escape">\
@@ -1158,6 +1161,7 @@ PCR7 does not hash the boot loader public key.</p></li>
 <li><p><a class="reference external" href="https://github.com/sirtoobii">&#64;sirtoobii</a>: Fix to correctly fall back and
 ask the LUKS password when TPM unsealing fails.</p></li>
 <li><p><a class="reference external" href="https://github.com/nazar-pc">&#64;nazar-pc</a>: Various fixes.</p></li>
+<li><p><a class="reference external" href="https://github.com/jo-so">&#64;jo-so</a>: Various fixes.</p></li>
 </ul>
 </section>
 <section id="useful-links">
