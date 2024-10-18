@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="generator" content="Docutils 0.20.1: https://docutils.sourceforge.io/" />
+<meta name="generator" content="Docutils 0.21.2: https://docutils.sourceforge.io/" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>The ultimate guide to Full Disk Encryption with TPM and Secure Boot (with hibernation support!)</title>
 <style type="text/css">
@@ -1022,7 +1022,7 @@ and adding the following lines:</p>
 <pre class="code shell literal-block"><code><span class="name variable">mok_signing_key</span><span class="operator">=</span>/root/secureboot/keys/dkms.key<span class="whitespace">
 </span><span class="name variable">mok_certificate</span><span class="operator">=</span>/root/secureboot/keys/dkms.der</code></pre>
 <p>Replace with the appropriate paths for your keys. Now, recompile your
-current dkms modules to have them signed:</p>
+current DKMS modules to have them signed:</p>
 <pre class="code console literal-block"><code><span class="generic prompt"># </span>/usr/lib/dkms/dkms_autoinstaller<span class="whitespace"> </span>start<span class="whitespace"> </span><span class="literal string backtick">`</span>uname<span class="whitespace"> </span>-r<span class="literal string backtick">`</span></code></pre>
 <p>Boom! You're done, one less problem!</p>
 </section>
@@ -1036,7 +1036,16 @@ disables hibernation altogether. Except we don't care about this, since our swap
 is encrypted! Booting another OS will not allow anyone to inject code in the
 kernel.</p>
 <p><em>EDIT 2023-08-18</em>: Someone implemented a solution that encrypts the swap and
-stores the keys in the TPM. <a class="reference external" href="https://lore.kernel.org/lkml/20210220013255.1083202-1-matthewgarrett&#64;google.com/">The patches</a> have never been merged though.</p>
+stores the keys in the TPM. <a class="reference external" href="https://lore.kernel.org/lkml/20210220013255.1083202-1-matthewgarrett&#64;google.com/">The patches</a>
+have never been merged though. The author wrote <a class="reference external" href="https://mjg59.dreamwidth.org/55845.html">a great article</a> to explain why they go to such
+extents to protect hibernation.</p>
+<p><em>EDIT 2024-10-18</em>: <a class="reference external" href="https://github.com/blastrock/blastrock.github.io/issues/10">As &#64;weiss kindly noted</a>, the more
+general goal of kernel lockdown is to prevent the kernel space from being
+modified <em>at all</em>, even by root, not just prevent unauthorized users from
+tampering with the kernel. In other words, if you boot an Ubuntu with secure
+boot, you won't be able to reach kernel space at all, you'd need to have the
+Ubuntu signature key for that. The suggested solutions in this guide give up on
+that tiny security feature because it's USELESS! (yeah, that's just my opinion)</p>
 <aside class="admonition note">
 <p class="admonition-title">Note</p>
 <p>You can skip this next rant if you want.</p>
