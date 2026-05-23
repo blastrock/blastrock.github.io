@@ -1,4 +1,18 @@
 words = [
+    "BTRFS",
+    "DKMS",
+    "EFI",
+    "FDE",
+    "GPT",
+    "LUKS",
+    "LVM",
+    "PCR",
+    "TPM",
+    "UEFI",
+    "UKI",
+    "distros",
+    "lockdown",
+    "rootfs",
     "subvolume",
     "subvolumes",
 ]

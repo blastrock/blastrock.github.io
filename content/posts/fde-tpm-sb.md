@@ -6,6 +6,10 @@ aliases = ["/fde-tpm-sb.html"]
 
 *Difficulty*: way harder than it should be!
 
+{{< note >}}
+[A more modern]({{< ref "posts/fde-tpm-sb-ng.md" >}}) post replaces this one.
+{{< /note >}}
+
 **IMPORTANT**: This guide has a security flaw as nicely explained in
 [this
 article](https://oddlama.org/blog/bypassing-disk-encryption-with-tpm2-unlock/).
