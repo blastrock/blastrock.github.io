@@ -1,0 +1,9 @@
+baseURL = 'https://blastrock.github.io/'
+locale = 'en-us'
+title = "blastrock's blog"
+theme = 'hugo-coder'
+
+[[menu.main]]
+  name = "Blog"
+  weight = 1
+  url  = "posts/"
